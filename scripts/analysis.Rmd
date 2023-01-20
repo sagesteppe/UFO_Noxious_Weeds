@@ -1,0 +1,25 @@
+---
+title: "Noxious Plants"
+output:
+  pdf_document: default
+  word_document: default
+header-includes:
+ - \usepackage[width=\textwidth]{caption}
+ - \usepackage{wrapfig}
+ - \usepackage[font=small,labelfont=bf]{caption}
+always_allow_html: yes
+csl: ../citations/citations/apa.csl
+bibliography: ../citations/citations/citations.bib
+link-citations: yes
+---
+
+\vspace{-1cm}
+
+The first stage in the life of a plant, as a seed, is to move. Generally seeds travel only short distances, but less common long distance movements are known to occur naturally (Section X.X), and long distance movement occurs regularly via humans. The movement of seeds by humans, in recent history *i.e.* the last couple thousand years, may result in the seed germinating and surviving in another location and it dying without being able to reproduce, or the plant may reproduce and create offspring but the population goes extinct after a few generations without influxes of new seeds (both *adventive*). A seed and it's offspring may also produce a population which is able to persist in the new ecosystem, and even disperse and spread out across their new landscape (*naturalized*); many of these species are readily assembled into the existing vegetation and do little to alter it. A subset of these species which are able to naturalize may displace considerable amounts of the plant species already in the landscape, and in so doing alters the composition of species at ecological sites, hence also the functioning of these sites (*invasive*).  That a few species can alter the properties of landscapes is at the core of the Ecological Sites. Certain plants native to an area, under certain circumstances may adversely alter the conditions of a site, akin to invasive species (*noxious*). 
+
+
+Most land managers in the Western cold deserts (The Colorado Plateau, Great Basin, and Columbia Plateau) consider noxious annual grasses to pose the greatest challenge towards maintaining ecosystems which allow for multiple uses (@chambers2009cold).
+
+
+
+
