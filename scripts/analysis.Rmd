@@ -15,11 +15,11 @@ link-citations: yes
 
 \vspace{-1cm}
 
-The first stage in the life of a plant, as a seed, is to move. Generally seeds travel only short distances, but less common long distance movements are known to occur naturally (Section X.X), and long distance movement occurs regularly via humans. The movement of seeds by humans, in recent history *i.e.* the last couple thousand years, may result in the seed germinating and surviving in another location and it dying without being able to reproduce, or the plant may reproduce and create offspring but the population goes extinct after a few generations without influxes of new seeds (both *adventive*). A seed and it's offspring may also produce a population which is able to persist in the new ecosystem, and even disperse and spread out across their new landscape (*naturalized*); many of these species are readily assembled into the existing vegetation and do little to alter it. A subset of these species which are able to naturalize may displace considerable amounts of the plant species already in the landscape, and in so doing alters the composition of species at ecological sites, hence also the functioning of these sites (*invasive*) (@davies2011plant, @evans2001exotic, @pyvsek2012global, *and reviewed in* @ehrenfeld2010ecosystem).  That a few species can alter the properties of landscapes is at the core of the Ecological Sites. Certain plants native to an area, under certain circumstances may adversely alter the conditions of a site, akin to invasive species (*noxious*). 
+One of the first acts in the life of a plant, as a seed, is to move. Generally seeds travel only short distances, but less common long distance movements are known to occur naturally (Section X.X), and long distance movement occurs regularly via humans. The long distance movement of seeds by humans, in recent history *i.e.* the last couple thousand years, may result in the seed germinating and surviving in another location and it dying without being able to reproduce (*a waif*), or the plant may reproduce and create offspring but the population goes extinct after a few generations without further influxes of new seeds (both *adventive*). A seed may also produce a population which is able to persist for many generations in the new ecosystem, and even disperse and spread out across their new landscape (*naturalized*); many of these species are readily incorporated into the existing vegetation and do little to alter it. A subset of these species which are able to naturalize may displace considerable amounts of the plant species already in the landscape, and in so doing alters the composition of species at ecological sites (*noxious*), hence also the functioning of these sites (*invasive*) (@davies2011plant, @evans2001exotic, @pyvsek2012global, *and reviewed in* @ehrenfeld2010ecosystem).  That a few species can alter the properties of landscapes is at the core of the Ecological Sites. While all invasive plants are noxious, not all noxious plants are invasive, as can be seen from a number of native species which act as aggressive weeds in disturbed settings and which prevent natural succession.
 
-Noxious and invasive species adversely affect nearly all ecosystem services offered by natural areas, increase fire frequency and intensity, and have enormous economic impacts (*reviwed in* @ehrenfeld2010ecosystem, @d1992biological, @duncan2004assessing, @fantle2022economic, @crystal2021economic). Invasive species at landscape scales have been shown to decrease plant species richness, taxonomic, functional and structural diversity leading to declines in habitat heterogeneity and adversely affecting wildlife (). They pose serious threats to the well being of both wildlife, livestock, and humans, via interactions with historic land management alterations, to the fire cycle (). The economic impacts of invasive species include enormous amounts of funds being channeled into their treatment to reduce fuel loads (), treatments to curtail their spread into new areas (), and losses in economic activity e.g. by displacement of grasses more suitable as forage for livestock (). 
+Noxious and invasive species adversely affect nearly all ecosystem services offered by natural areas, increase fire frequency and intensity, and have enormous economic impacts (*reviwed in* @ehrenfeld2010ecosystem, @d1992biological, @duncan2004assessing, @fantle2022economic, @crystal2021economic). Invasive species at landscape scales have been shown to decrease plant species richness, taxonomic, functional and structural diversity leading to declines in habitat heterogeneity and adversely affecting wildlife (@keeley2012fire, @ehrenfeld2010ecosystem, @klinger2017alternative). They pose serious threats to the well being of both wildlife, livestock, and humans, via interactions with historic land management alterations, to the fire cycle (@d1992biological, @keeley2012fire, @). The economic impacts of invasive species include enormous amounts of funds being channeled into their treatment to reduce fuel loads (), treatments to curtail their spread into new areas (), and losses in economic activity e.g. by displacement of grasses more suitable as forage for livestock (). 
 
-Most land managers in the Western cold deserts (The Colorado Plateau, Great Basin, and Columbia Plateau) consider noxious annual grasses to pose the greatest challenge towards maintaining ecosystems which allow for multiple uses (@chambers2009cold). Of concern to our office is the increasing adpation of cheatgrass (*Bromus tectorum*), which is already present throughout the field office, towards higher elevation sites (@smith2022elevational). 
+Most land managers in the Western cold deserts (The Colorado Plateau, Great Basin, and Columbia Plateau) consider noxious annual grasses to pose the greatest challenge towards maintaining ecosystems which allow for multiple uses (@chambers2009cold). Of concern to our office is the increasing adpation of cheatgrass (*Bromus tectorum*), which is already present throughout the field office, towards higher elevation sites (@smith2022elevational). Based on the limited evidence currently available the effect of encroachment of invasive species is of more adverse affect than is attributable to climate change or drought, although synergistic interactions between invasive species and drought still occurr  (@clarke2005long, @lopez2022global). 
 
 # Methods
 
@@ -29,7 +29,6 @@ library(tidyverse)
 ```
 
 Creation and maintenance of registries of noxious and invasive species often falls on the Department of Agriculture of the Federal and State governments (@quinn2013navigating). Given the focus of these agencies, these lists are generally focused on arable lands used for crop production, with minimal effort placed on natural settings (@quinn2013navigating). To better characterize the condition of invasive and noxious species in natural areas, BLM staff co-developed definitive lists of status of species regarding their Noxious or Invasive status in 2019. 
-
 
 ```{r download records from BIEN, eval = F}
 
@@ -45,11 +44,11 @@ bien_recs <- BIEN::BIEN_occurrence_box(min.lat  = ufo_bbox[2],
                                  max.long = ufo_bbox[3])
 write.csv(bien_recs, file.path('..', 'data', 'raw', 'bien_occurrence_from_bbox.csv'))
 
-rm(fp, ufo_bbox)
+rm(fp, ufo_bbox, bien_recs)
 ```
 
-```{r identify invasive species from CNHP}
-p <- '../data/raw/'
+```{r identify invasive species from CNHP, eval = F}
+p <- file.path('..', 'data', 'raw/')
 f <- list.files(p)
 
 invasive_species <- read.csv(file.path(p, f[grep('Values', f)])) %>% 
@@ -60,9 +59,17 @@ invasive_species <- read.csv(file.path(p, f[grep('Values', f)])) %>%
   filter(National_NativeStatus %in% c('Introduced', 'Both'))
 
 write.csv(invasive_species, row.names = F, 
-          file.path('../data/raw', 'Introducted_species_CO.csv'))
+          file.path(p, 'Introducted_species_CO.csv'))
+rm(invasive_species)
+
+invasive_species_reviewed <- read.csv(
+  file.path(p, 'Introducted_species_CO-Reviewed.csv')) %>% 
+  unite(CONox_Status:IRank_Score, col = 'Invasive' , remove = F, na.rm = T) %>% 
+  mutate(Invasive = na_if(Invasive, "")) %>% 
+  mutate(Invasive = if_else(!is.na(Invasive), T, F))
+
 ```
 
-To develop a list of invasive plant species for the study area 'IRanks', a semi-quantitative expert based assessment of introduced species, were extracted from the C-Values prepared by the Colorado Natural Heritage Program (Section X.X) (@moore2004iranks, @cnhp2020fqi). 
+To develop a list of invasive plant species for the study area 'IRanks', a semi-quantitative expert based assessment of introduced species, were extracted from the C-Values prepared by the Colorado Natural Heritage Program (Section X.X) (@moore2004iranks, @cnhp2020fqi). __All introduced species in the state were then reviewed by our staff, and we added notations to two species (*Ceratocephala testiculata*, and *Lappula squarrosa*), which display these characteristics in many of our post burn sites at lower elevations, especially noted by crews in the adjacent Grand Junction Field Office.__ GUESS NOT??? 
 
 
