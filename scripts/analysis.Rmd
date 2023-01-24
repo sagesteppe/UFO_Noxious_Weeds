@@ -140,11 +140,12 @@ inv_present <- function(x, y) {
   l <-  length(grep('TRUE',
                     str_detect(x,
                                fixed(y, ignore_case = F))))
-  if (l > 1) {
+  v <- if (l > 0) {
     T
   } else{
     F
   }
+  return(v)
 }
 
 Invasive <- lapply(lpi$All_species, inv_present, invasive_species$National_USDASymbol)
@@ -152,14 +153,19 @@ Invasive <- unlist(Invasive)
 lpi <- bind_cols(lpi, Invasive = Invasive)
 
 # percent cover of all plants
-
-lpi %>% 
+lpi_sum <- lpi %>% 
   group_by(PrimaryKey) %>% 
-  add_count(TopCanopy, name = 'Vascular_Intercepts') %>% 
-  mutate(Invasive = if_else(length))
+  summarize(Vascular_Intercepts =  150 - sum(is.na(TopCanopy)),
+         Invasive_Intercepts = sum(Invasive))
 
+# join up
+lpi_sum <- left_join(lpi_sum, select(spp_alpha, PLOTID, PrimaryKey) %>% 
+                       distinct(), by = 'PrimaryKey') %>% 
+  select(-PrimaryKey) %>% 
+  mutate(Proportion_Invasive = Invasive_Intercepts/Vascular_Intercepts) %>% 
+  st_as_sf()
 
-rm(Invasive)
+rm(Invasive, inv_present)
 ```
 
 
@@ -181,29 +187,30 @@ inv_richness <- inv %>%
 ```
 
 
-```{r Number of Invasive and Introduced derived per plot}
 
-# we will spin up some nice maps here using the full templates. 
-ggplot(inv_richness, aes(color = Prop_Int)) +
-  geom_sf()
+```{r Rescale three Proportions from zero to one and sum together for cartography}
 
-ggplot(inv_richness, aes(color = Prop_Inv)) +
-  geom_sf()
+inv_carto <- inv_richness %>% 
+  mutate(across(.cols = Prop_Int:Prop_Inv, ~ scales::rescale(., to = c(0,1)))) %>% 
+  select(PLOTID, Prop_Int, Prop_Inv) %>% 
+  st_drop_geometry()
 
-```
+inv_carto <- left_join(lpi_sum, inv_carto, by = "PLOTID") %>% 
+  distinct(PLOTID, .keep_all = T) %>% 
+  rowwise() %>% 
+  mutate(Prop_Inv2 = sum(Proportion_Invasive + Prop_Inv + Prop_Int, na.rm = T)/3)
 
-
-
-
-
-
-
-```{r Total Proportion of Invasive Species Cover per Plot}
-
-
+ggplot() +
+  geom_sf(data = inv_carto, aes(fill = Prop_Inv2), shape = 23, size = 2) +
+  scale_fill_distiller(palette = "RdYlGn", direction = -1)
 
 ```
 
+```{r Do Certain Ecosistes appear less resistant to invasion}
+
+
+
+```
 
 
 
