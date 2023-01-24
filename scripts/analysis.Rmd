@@ -120,11 +120,48 @@ esd_class <- read.csv( file.path(p, f[grep('Tracking', f)]) ) %>%
 spp_alpha <- st_intersection(pts, spp_alpha) %>% 
   left_join(., esd_class, by = c('PLOTID' = 'PlotID')) %>% 
   mutate(ECO.SITE = if_else(PLOTID == 'GR-035', 'R036XY114CO', ECO.SITE),
-         PLOTID = if_else(PLOTID == 'GR-035', 'GR-025', PLOTID)) %>% 
-  select(-PrimaryKey)
+         PLOTID = if_else(PLOTID == 'GR-035', 'GR-025', PLOTID)) 
 
 rm(plot_char, pts, esd_class)
 ```
+
+
+```{r import LPI data and tie to plots}
+
+lpi <- read.csv( file.path(p, f[grep('LPIRAW', f)]) ) %>% 
+  select(PrimaryKey, TopCanopy:SoilSurface) %>% 
+  filter(PrimaryKey %in% spp_alpha$PrimaryKey) %>% 
+  mutate(TopCanopy = na_if(TopCanopy, 'None'),
+               TopCanopy = na_if(TopCanopy, 'N')) %>% 
+  mutate(across(.cols = everything(), ~ na_if(.x, ""))) %>% 
+  unite(col = 'All_species',  TopCanopy:SoilSurface,  sep = " ", na.rm = T, remove = F) 
+
+inv_present <- function(x, y) {
+  l <-  length(grep('TRUE',
+                    str_detect(x,
+                               fixed(y, ignore_case = F))))
+  if (l > 1) {
+    T
+  } else{
+    F
+  }
+}
+
+Invasive <- lapply(lpi$All_species, inv_present, invasive_species$National_USDASymbol)
+Invasive <- unlist(Invasive)
+lpi <- bind_cols(lpi, Invasive = Invasive)
+
+# percent cover of all plants
+
+lpi %>% 
+  group_by(PrimaryKey) %>% 
+  add_count(TopCanopy, name = 'Vascular_Intercepts') %>% 
+  mutate(Invasive = if_else(length))
+
+
+rm(Invasive)
+```
+
 
 ```{r Join invasive species and process raw data}
 
@@ -133,19 +170,40 @@ inv <- spp_alpha %>%
   group_by(PLOTID) %>% 
   add_count(name = 'No_Spp') %>% 
   group_by(PLOTID, National_NativeStatus) %>%
-  add_count(name = 'Introduced') %>% 
+  add_count(name = 'No_Introduced') %>% 
   group_by(PLOTID, Invasive) %>%  
-  add_count(name = 'Invasive') 
+  add_count(name = 'No_Invasive') 
 
 inv_richness <- inv %>% 
-  drop_na(National_SciName_noAuthority)
+  drop_na(National_SciName_noAuthority) %>% 
+  mutate(Prop_Int = No_Introduced/No_Spp,
+           Prop_Inv = No_Invasive/No_Spp)
 ```
 
 
-```{r Number of Invasive and Introfufr dprivrd per plot}
+```{r Number of Invasive and Introduced derived per plot}
+
+# we will spin up some nice maps here using the full templates. 
+ggplot(inv_richness, aes(color = Prop_Int)) +
+  geom_sf()
+
+ggplot(inv_richness, aes(color = Prop_Inv)) +
+  geom_sf()
+
+```
+
+
+
+
+
+
+
+```{r Total Proportion of Invasive Species Cover per Plot}
+
 
 
 ```
+
 
 
 
