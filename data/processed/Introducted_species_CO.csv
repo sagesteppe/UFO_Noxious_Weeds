@@ -1,4 +1,9 @@
 "National_USDASymbol","National_SciName_noAuthority","Ack_SciName_noAuthority","National_NativeStatus","Invasive","CONox_Status","Invasiveness","IRank","IRank_Score"
+"TACA8","Taeniatherum caput-medusae","Taeniatherum caput-medusae","Introduced",TRUE,NA,NA,NA,NA
+"CEST","Centaurea stoebe","Centaurea stoebe spp. Micranthos","Introduced",TRUE,NA,NA,NA,NA
+"TARA","Tamarix ramosissima","Tamarix chinensis","Introduced",TRUE,NA,NA,NA,NA
+"BRHO2","Bromus hordeaceus","Bromus hordaceus ssp. Hordaceus","Introduced",TRUE,NA,NA,NA,NA
+"BRTEG","Bromus tectorum var. glabratus","Bromus tectorum","Introduced",TRUE,NA,NA,NA,NA
 "ABTH","Abutilon theophrasti","Abutilon theophrasti","Introduced",TRUE,"List C",4,"Medium/Low",4
 "ACFI","Achillea filipendulina","Achillea filipendulina","Introduced",FALSE,NA,NA,NA,NA
 "ACMI2","Achillea millefolium","Achillea millefolium","Both",FALSE,NA,NA,NA,NA

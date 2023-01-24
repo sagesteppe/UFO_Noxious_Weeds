@@ -26,6 +26,9 @@ Most land managers in the Western cold deserts (The Colorado Plateau, Great Basi
 ```{r load libraries}
 library(sf)
 library(tidyverse)
+
+p <- file.path('..', 'data', 'raw')
+f <- list.files(p)
 ```
 
 Creation and maintenance of registries of noxious and invasive species often falls on the Department of Agriculture of the Federal and State governments (@quinn2013navigating). Given the focus of these agencies, these lists are generally focused on arable lands used for crop production, with minimal effort placed on natural settings (@quinn2013navigating). To better characterize the condition of invasive and noxious species in natural areas, BLM staff co-developed definitive lists of status of species regarding their Noxious or Invasive status in 2019. 
@@ -48,8 +51,10 @@ rm(fp, ufo_bbox, bien_recs)
 ```
 
 ```{r identify invasive species from CNHP, eval = F}
-p <- file.path('..', 'data', 'raw/')
-f <- list.files(p)
+
+attributes <- read.csv( file.path(p, f[grep('Attributes', f)])) %>% 
+  distinct(Species, Noxious ) %>% 
+  filter(Noxious == 'YES')
 
 invasive_species <- read.csv(file.path(p, f[grep('Values', f)])) %>% 
   select(National_USDASymbol, National_SciName_noAuthority, Ack_SciName_noAuthority,  National_NativeStatus, 
@@ -61,14 +66,86 @@ invasive_species <- read.csv(file.path(p, f[grep('Values', f)])) %>%
   mutate(Invasive = na_if(Invasive, "")) %>% 
   mutate(Invasive = if_else(!is.na(Invasive), T, F))
 
+attributes[!attributes$Species %in% invasive_species$National_USDASymbol,]
+# these mostly due to the CPNWH being finer in taxonomy, e.g. if only an infraspecific 
+# taxon known to the state, than this recorded.
+
+aim_synonyms <-  read.csv( file.path(p, f[grep('AIM_invasive', f)])) 
+
+invasive_species %>% 
+  mutate(National_USDASymbol = if_else(
+    National_USDASymbol == 'TACH$', 'TACH2', National_USDASymbol
+  )) 
+invasive_species <- bind_rows(aim_synonyms, invasive_species)
+
 write.csv(invasive_species, row.names = F, 
           file.path('..', 'data', 'processed', 'Introducted_species_CO.csv'))
-rm(invasive_species)
+
+rm(attributes, invasive_species)
 ```
 
-To develop a list of invasive plant species for the study area 'IRanks', a semi-quantitative expert based assessment of introduced species, were extracted from the C-Values prepared by the Colorado Natural Heritage Program (Section X.X) (@moore2004iranks, @cnhp2020fqi).  
+To develop a list of invasive plant species for the study area 'IRanks', a semi-quantitative expert based assessment of introduced species, were extracted from the C-Values prepared by the Colorado Natural Heritage Program (Section X.X) (@moore2004iranks, @cnhp2020fqi).  This was combined with an AIM species attribute table extract from the vicinity of the study area, the latter dataset contained a handful of synonyms which included codes not present in the former.
 
-```{r}
-invasive_species <- read.csv( file.path('..', 'data', 'processed', 'Introducted_species_CO.csv') )
+```{r import species richness data and tie to plots}
+
+plot_char <- read.csv( file.path(p, f[grep('Characterization', f)]) ) %>% 
+  select(PrimaryKey, Easting, Northing) %>% 
+  drop_na() 
+
+invasive_species <- read.csv(
+  file.path('..', 'data', 'processed', 'Introducted_species_CO.csv') ) %>% 
+  select(National_USDASymbol:Invasive)
+
+spp_alpha <- read.csv( file.path(p, f[grep('Richness.csv$', f)])) %>% 
+  select(PrimaryKey, SpeciesList, abundance, distribution) %>% 
+  right_join(., plot_char, by = 'PrimaryKey') %>% 
+  st_as_sf(coords = c('Easting', 'Northing'), crs = 4269) %>% 
+  st_transform(26913)
+
+pts <- st_read(
+  '/media/sagesteppe/ExternalHD/aimDB/data/raw/AIM_Sample_Design/AIM_Design_Stratification.shp',
+                quiet = T) %>% 
+  st_transform(26913) %>% 
+  st_buffer(100) %>% 
+  select(PLOTID, STRATUM)
+
+spp_alpha <- spp_alpha %>% 
+  st_transform(26913)
+
+esd_class <- read.csv( file.path(p, f[grep('Tracking', f)]) ) %>% 
+  filter(STATUS == 'SAMPLED') %>% 
+  mutate(ECO.SITE = if_else(ECO.SITE.MATCHED == F, 'UNKNOWN', ECO.SITE)) %>% 
+  select(PlotID = PLOT.ID, ECO.SITE)
+
+spp_alpha <- st_intersection(pts, spp_alpha) %>% 
+  left_join(., esd_class, by = c('PLOTID' = 'PlotID')) %>% 
+  mutate(ECO.SITE = if_else(PLOTID == 'GR-035', 'R036XY114CO', ECO.SITE),
+         PLOTID = if_else(PLOTID == 'GR-035', 'GR-025', PLOTID)) %>% 
+  select(-PrimaryKey)
+
+rm(plot_char, pts, esd_class)
 ```
+
+```{r Join invasive species and process raw data}
+
+inv <- spp_alpha %>% 
+  left_join(., invasive_species, by = c('SpeciesList' = 'National_USDASymbol')) %>% 
+  group_by(PLOTID) %>% 
+  add_count(name = 'No_Spp') %>% 
+  group_by(PLOTID, National_NativeStatus) %>%
+  add_count(name = 'Introduced') %>% 
+  group_by(PLOTID, Invasive) %>%  
+  add_count(name = 'Invasive') 
+
+inv_richness <- inv %>% 
+  drop_na(National_SciName_noAuthority)
+```
+
+
+```{r Number of Invasive and Introfufr dprivrd per plot}
+
+
+```
+
+
 
