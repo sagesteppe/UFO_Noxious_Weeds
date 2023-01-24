@@ -27,6 +27,7 @@ Most land managers in the Western cold deserts (The Colorado Plateau, Great Basi
 library(sf)
 library(tidyverse)
 
+source('functions.R')
 p <- file.path('..', 'data', 'raw')
 f <- list.files(p)
 ```
@@ -136,18 +137,6 @@ lpi <- read.csv( file.path(p, f[grep('LPIRAW', f)]) ) %>%
   mutate(across(.cols = everything(), ~ na_if(.x, ""))) %>% 
   unite(col = 'All_species',  TopCanopy:SoilSurface,  sep = " ", na.rm = T, remove = F) 
 
-inv_present <- function(x, y) {
-  l <-  length(grep('TRUE',
-                    str_detect(x,
-                               fixed(y, ignore_case = F))))
-  v <- if (l > 0) {
-    T
-  } else{
-    F
-  }
-  return(v)
-}
-
 Invasive <- lapply(lpi$All_species, inv_present, invasive_species$National_USDASymbol)
 Invasive <- unlist(Invasive)
 lpi <- bind_cols(lpi, Invasive = Invasive)
@@ -164,6 +153,24 @@ lpi_sum <- left_join(lpi_sum, select(spp_alpha, PLOTID, PrimaryKey) %>%
   select(-PrimaryKey) %>% 
   mutate(Proportion_Invasive = Invasive_Intercepts/Vascular_Intercepts) %>% 
   st_as_sf()
+
+# Cover of individual invasive species by plots
+
+lpi2 <- lpi %>% 
+  select(PrimaryKey:Lower4, -All_species) %>% 
+  pivot_longer(!PrimaryKey, values_to = 'SYMBOL')  %>% 
+  filter(!SYMBOL %in% c('L', 'WL', 'HL')) %>% 
+  drop_na(SYMBOL) %>% 
+  group_by(PrimaryKey, SYMBOL) %>% 
+  count(SYMBOL) %>% 
+  filter(SYMBOL %in% invasive_species$National_USDASymbol) %>% 
+  ungroup()
+
+invasive_sum <- left_join(lpi2, select(spp_alpha, PLOTID, PrimaryKey) %>% 
+                       distinct(), by = 'PrimaryKey') %>% 
+  select(-PrimaryKey, -geometry) %>% 
+  left_join(., select( invasive_species, National_USDASymbol, Invasive), 
+            by = c('SYMBOL' ='National_USDASymbol'))
 
 rm(Invasive, inv_present)
 ```
@@ -184,6 +191,7 @@ inv_richness <- inv %>%
   drop_na(National_SciName_noAuthority) %>% 
   mutate(Prop_Int = No_Introduced/No_Spp,
            Prop_Inv = No_Invasive/No_Spp)
+
 ```
 
 
@@ -206,8 +214,78 @@ ggplot() +
 
 ```
 
-```{r Do Certain Ecosistes appear less resistant to invasion}
 
+
+
+```{r Do Certain Ecosites appear less resistant to invasion}
+
+group_by()
+
+```
+
+
+```{r Which Species of Invasives compose most of the cover on plots}
+
+vasc_total <- select(lpi_sum, PLOTID, Vascular_Intercepts) %>% distinct()
+
+r <- left_join(select(lpi_sum, PLOTID, Vascular_Intercepts) %>% distinct(), 
+               invasive_sum, by= 'PLOTID')  %>% 
+  rowwise() %>% 
+  mutate(Prop_Cover = n/Vascular_Intercepts) %>% 
+  filter(Prop_Cover <= 1.0) # need to see why SD-338
+  
+r_locations <- r %>% 
+  group_by(SYMBOL) %>% 
+  add_count(SYMBOL) %>% 
+  filter(Invasive == T)
+
+
+ne_weeds <- c('ALDE','CACH42','CADR','CIAR4', 'COAR4', 
+                'CYOF', 'GYEL', 'LEDE', 'PHPR3', 'POAR8', 'POAV', 'TARA')
+ne_labels <- filter(invasive_species, National_USDASymbol %in% ne_weeds) %>% 
+  pull(National_SciName_noAuthority)
+r_locations_ne <- r_locations %>% filter(SYMBOL %in% ne_weeds)
+
+r_locations_ne  %>% 
+  st_buffer(2500) %>% 
+  st_bbox()
+
+ggplot() +
+  geom_sf(data = r_locations_ne, aes(color = SYMBOL), shape = 7, size = 3) +
+  theme_bw() +
+  labs(title = 'Invasive Species in the NE Field Office') +
+  theme(
+    plot.title =  element_text(hjust = 0.5),
+    axis.title.x=element_blank(),
+    axis.text.x=element_blank(),
+    axis.ticks.x=element_blank(),
+    axis.title.y=element_blank(),
+    axis.text.y=element_blank(),
+    axis.ticks.y=element_blank(),
+    panel.spacing = unit(0.1, "lines")
+    ) + 
+  scale_color_manual('Species', 
+                     values = colorspace::qualitative_hcl(12, palette = "Dark 3"),
+                     labels=ne_labels)
+
+r_locations <- r_locations %>% filter(!SYMBOL %in% ne_weeds)
+
+ggplot() +
+  geom_sf(data = r_locations) +
+  facet_wrap(~SYMBOL) +
+  theme_bw() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.spacing = unit(0.1, "lines")
+        )
+
+```
+
+```{r Which species of invasives are most common across the field office}
 
 
 ```
