@@ -172,7 +172,7 @@ invasive_sum <- left_join(lpi2, select(spp_alpha, PLOTID, PrimaryKey) %>%
   left_join(., select( invasive_species, National_USDASymbol, Invasive), 
             by = c('SYMBOL' ='National_USDASymbol'))
 
-rm(Invasive, inv_present)
+rm(Invasive, inv_present, lpi2)
 ```
 
 
@@ -217,6 +217,7 @@ ggplot() +
 
 ```{r Do Certain Ecosites appear less resistant to invasion}
 
+# remember the invasive should probably be in species richness but NOT on LPI?
 
 ```
 
@@ -257,14 +258,10 @@ st_write(r_locations, file.path(carto_path, 'noxious', 'noxious_all.shp'),
 ```
 
 
-```{r Which species of invasives are most common across the field office}
-
-```
-
-
 # Results
 
-```{r}
+```{r Prepare some writing results}
+
 inv_richness <- st_drop_geometry(inv_richness)
 inv_r_t <- inv_richness[inv_richness$Invasive==T,]
 
@@ -275,13 +272,13 @@ most_common_inv <-  sort(
 mean(lpi_sum$Proportion_Invasive) * 100
 ```
 
-`r length(unique(inv_richness$SpeciesList))` introduced, and of these `r length(unique(inv_r_t$SpeciesList))` invasive species were detected across all `r` plots. `r length(unique(inv_r_t$PLOTID))` plots had invasive species on them, and `r group_by(inv_r_t, PLOTID) |> filter(n() >=2) |> distinct(PLOTID) |> nrow()` plots had more than one invasive species. When reducing these to species of immediate management concern `r` species were present at `r` plots (REVIEW THE LIST AND THIN IT). As expected, the species which occurred the most often were `r toString(names(most_common_inv))` at `r toString(as.numeric(most_common_inv))` of all plots respectively. Most of the species were present across the entirety of the field office, exception for ca. a dozen species which were isolated to localities between Delta and Paonia (Figure XX). Several of these species generally occur in wetter, higher elevation, habitats than most terrestrial BLM Land and their spread to BLM is minimal; however a number of the populations are adjacent to USFS land (Figure XX). 
+`r length(unique(inv_richness$SpeciesList))` introduced, and of these `r length(unique(inv_r_t$SpeciesList))` invasive species were detected across all `r` plots. `r length(unique(inv_r_t$PLOTID))` plots had invasive species on them, and `r group_by(inv_r_t, PLOTID) |> filter(n() >=2) |> distinct(PLOTID) |> nrow()` plots had more than one invasive species. When reducing these to species of immediate management concern `r` species were present at `r` plots (REVIEW THE LIST AND THIN IT). As expected, the species which occurred the most often were `r toString(names(most_common_inv))` at `r toString(as.numeric(most_common_inv))` of all plots respectively. Most of the species were present across the entirety of the field office, except for ca. a dozen species which were isolated to localities between Delta and Paonia (Figure XX). Several of these species generally occur in wetter, higher elevation, habitats than most terrestrial BLM Land and their spread to BLM is minimal; however a number of the populations are adjacent to USFS land (Figure XX). 
 
 A component of reference condition for all Ecological Sites is that invasive species are not present. By this metric the plots which would be meeting their benchmarks is quite low (`r length(unique(inv_r_t$PLOTID))`), however we feel another consideration is whether an invasive species was detected on the Line-Point Intercepts (Section XX). As reference condition benchmarks still have considerable association with pre-Columbian times ecology, and much has changed in the interim, we believe each of these plots deserves another more liberal consideration. Of the plots which had invasive species, they were detected via line-point intercept at `r  nrow(lpi_sum[lpi_sum$Proportion_Invasive>0,])` of them.  
 
 There were `r nrow(unique(invasive_sum[invasive_sum$Invasive == T,'SYMBOL'] ))` species which were detected on LPI lines at `r nrow(lpi_sum[lpi_sum$Proportion_Invasive>0,])` plots, and of these species `r` were of immediate management concern.  The proportion of all vegetation cover which was invasive at plots varied from `r min(lpi_sum$Proportion_Invasive)`% to `r max(lpi_sum$Proportion_Invasive) * 100`% (Mdn = `r round(median(lpi_sum$Proportion_Invasive) * 100, 2)`, mean = `r round(mean(lpi_sum$Proportion_Invasive) * 100,2)`). In general, the few plots with exceptionally high cover of invasive species were small parcels of BLM land adjacent to roads, and private lands, in low elevation areas near Delta (figure XX). 
 
-A caveat with detecting invasive species is that, in the study area, most of them are annuals. Given the exceptional drought conditions (SECTION XX) under which field work was conducted, it is quite likely that the estimated covers of them by plot are notably lower than are during more normal conditions. 
+A caveat with detecting invasive species is that, in the study area, most of them are annuals. Given the exceptional drought conditions (SECTION XX) under which field work was conducted, it is quite likely that the estimated covers of them by plot are notably lower than are during more normal conditions (@mack1984demography, @bowers1987precipitation). 
 
 
 ```{r}
