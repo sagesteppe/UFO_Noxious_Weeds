@@ -243,14 +243,22 @@ ne_weeds <- c('ALDE','CACH42','CADR','CIAR4', 'COAR4',
                 'CYOF', 'GYEL', 'LEDE', 'PHPR3', 'POAR8', 'POAV', 'TARA')
 ne_labels <- filter(invasive_species, National_USDASymbol %in% ne_weeds) %>% 
   pull(National_SciName_noAuthority)
-r_locations_ne <- r_locations %>% filter(SYMBOL %in% ne_weeds)
 
+r_locations_ne <- r_locations %>% filter(SYMBOL %in% ne_weeds)
+r_locations <- r_locations %>% filter(!SYMBOL %in% ne_weeds)
+```
+
+
+```{r  write out data for mapping in UFO elements of style}
 carto_path <- '../../UFO_cartography'
 if (!dir.exists(file.path(carto_path, 'noxious'))) {dir.create(file.path(carto_path, 'noxious'))}
 st_write(r_locations_ne, file.path(carto_path, 'noxious', 'noxious_NE.shp'), 
          quiet = T)
+st_write(r_locations, file.path(carto_path, 'noxious', 'noxious_a;;.shp'), 
+         quiet = T)
+```
 
-r_locations <- r_locations %>% filter(!SYMBOL %in% ne_weeds)
+```{r}
 ggplot() +
   geom_sf(data = r_locations) +
   facet_wrap(~SYMBOL) +
