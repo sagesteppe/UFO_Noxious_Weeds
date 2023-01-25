@@ -254,8 +254,8 @@ carto_path <- '../../UFO_cartography'
 if (!dir.exists(file.path(carto_path, 'noxious'))) {dir.create(file.path(carto_path, 'noxious'))}
 st_write(r_locations_ne, file.path(carto_path, 'noxious', 'noxious_NE.shp'), 
          quiet = T)
-st_write(r_locations, file.path(carto_path, 'noxious', 'noxious_a;;.shp'), 
-         quiet = T)
+st_write(r_locations, file.path(carto_path, 'noxious', 'noxious_all.shp'), 
+         quiet = T, append = F)
 ```
 
 ```{r}
