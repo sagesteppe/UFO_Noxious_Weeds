@@ -219,7 +219,6 @@ ggplot() +
 
 ```{r Do Certain Ecosites appear less resistant to invasion}
 
-group_by()
 
 ```
 
@@ -246,30 +245,12 @@ ne_labels <- filter(invasive_species, National_USDASymbol %in% ne_weeds) %>%
   pull(National_SciName_noAuthority)
 r_locations_ne <- r_locations %>% filter(SYMBOL %in% ne_weeds)
 
-r_locations_ne  %>% 
-  st_buffer(2500) %>% 
-  st_bbox()
-
-ggplot() +
-  geom_sf(data = r_locations_ne, aes(color = SYMBOL), shape = 7, size = 3) +
-  theme_bw() +
-  labs(title = 'Invasive Species in the NE Field Office') +
-  theme(
-    plot.title =  element_text(hjust = 0.5),
-    axis.title.x=element_blank(),
-    axis.text.x=element_blank(),
-    axis.ticks.x=element_blank(),
-    axis.title.y=element_blank(),
-    axis.text.y=element_blank(),
-    axis.ticks.y=element_blank(),
-    panel.spacing = unit(0.1, "lines")
-    ) + 
-  scale_color_manual('Species', 
-                     values = colorspace::qualitative_hcl(12, palette = "Dark 3"),
-                     labels=ne_labels)
+carto_path <- '../../UFO_cartography'
+if (!dir.exists(file.path(carto_path, 'noxious'))) {dir.create(file.path(carto_path, 'noxious'))}
+st_write(r_locations_ne, file.path(carto_path, 'noxious', 'noxious_NE.shp'), 
+         quiet = T)
 
 r_locations <- r_locations %>% filter(!SYMBOL %in% ne_weeds)
-
 ggplot() +
   geom_sf(data = r_locations) +
   facet_wrap(~SYMBOL) +
