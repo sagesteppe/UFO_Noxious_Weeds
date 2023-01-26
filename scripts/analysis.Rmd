@@ -206,8 +206,19 @@ inv_carto <- inv_richness %>%
 inv_carto <- left_join(lpi_sum, inv_carto, by = "PLOTID") %>% 
   distinct(PLOTID, .keep_all = T) %>% 
   rowwise() %>% 
-  mutate(Prop_Inv2 = sum(Proportion_Invasive + Prop_Inv + Prop_Int, na.rm = T)/3)
+  mutate(Prop_Inv2 = sum(Proportion_Invasive + Prop_Inv + Prop_Int, na.rm = T)/3) %>% 
+  select(PLOTID, Index_Prop = Prop_Inv2)
 
+```
+
+```{r Write out data for three index plot, eval = F}
+
+carto_path <- '../../UFO_cartography'
+if (!dir.exists(file.path(carto_path, 'noxious'))) {dir.create(file.path(carto_path, 'noxious'))}
+st_write(inv_carto,  file.path(carto_path, 'noxious', 'noxious_index.shp'))
+```
+
+```{r}
 ggplot() +
   geom_sf(data = inv_carto, aes(fill = Prop_Inv2), shape = 23, size = 2) +
   scale_fill_distiller(palette = "RdYlGn", direction = -1)
@@ -248,13 +259,13 @@ r_locations <- r_locations %>% filter(!SYMBOL %in% ne_weeds)
 ```
 
 
-```{r  write out data for mapping in UFO elements of style}
-carto_path <- '../../UFO_cartography'
-if (!dir.exists(file.path(carto_path, 'noxious'))) {dir.create(file.path(carto_path, 'noxious'))}
+```{r  write out data for mapping in UFO elements of style, eval = F}
+
 st_write(r_locations_ne, file.path(carto_path, 'noxious', 'noxious_NE.shp'), 
          quiet = T)
 st_write(r_locations, file.path(carto_path, 'noxious', 'noxious_all.shp'), 
          quiet = T, append = F)
+
 ```
 
 
@@ -278,7 +289,7 @@ A component of reference condition for all Ecological Sites is that invasive spe
 
 There were `r nrow(unique(invasive_sum[invasive_sum$Invasive == T,'SYMBOL'] ))` species which were detected on LPI lines at `r nrow(lpi_sum[lpi_sum$Proportion_Invasive>0,])` plots, and of these species `r` were of immediate management concern.  The proportion of all vegetation cover which was invasive at plots varied from `r min(lpi_sum$Proportion_Invasive)`% to `r max(lpi_sum$Proportion_Invasive) * 100`% (Mdn = `r round(median(lpi_sum$Proportion_Invasive) * 100, 2)`, mean = `r round(mean(lpi_sum$Proportion_Invasive) * 100,2)`). In general, the few plots with exceptionally high cover of invasive species were small parcels of BLM land adjacent to roads, and private lands, in low elevation areas near Delta (figure XX). 
 
-A caveat with detecting invasive species is that, in the study area, most of them are annuals. Given the exceptional drought conditions (SECTION XX) under which field work was conducted, it is quite likely that the estimated covers of them by plot are notably lower than are during more normal conditions (@mack1984demography, @bowers1987precipitation). 
+A caveat with detecting invasive species is that, in the study area, most of them are annuals (##/##). Given the exceptional drought conditions (SECTION XX) under which field work was conducted, it is quite likely that the estimated covers of them by plot are notably lower than are during more normal conditions (@mack1984demography, @bowers1987precipitation). 
 
 
 ```{r}
