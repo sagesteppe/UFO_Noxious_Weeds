@@ -236,7 +236,7 @@ ggplot(data = plot_vars, aes(x = Index_Prop, y = Proportion)) +
   geom_smooth(colour = '#391306', method = 'glm') +
   scale_color_manual('Proportion', values = cols, 
                      labels = labs) +
-  scale_shape_manual('Proportion', values = c(15, 16, 17), 
+  scale_shape_manual('Proportion', values = c(0, 1, 2), 
                      labels = labs) +
   theme_bw(base_size = 10) +
   theme(aspect.ratio = 1, legend.title = element_text(hjust = 0.5)) +
@@ -366,8 +366,23 @@ There were `r nrow(unique(invasive_sum[invasive_sum$Invasive == T,'SYMBOL'] ))` 
 
 A caveat with detecting invasive species is that, in the study area, most of them are annuals (##/##). Given the exceptional drought conditions (SECTION XX) under which field work was conducted, it is quite likely that the estimated covers of them by plot are notably lower than are during more normal conditions (@mack1984demography, @bowers1987precipitation). While it seems that their presence at plots is unlikely to be altered, their abundances were likely understimated in most years of sampling (cite). 
 
+
+\begin{wrapfigure}{l}{0.6\textwidth}
+  \centering
+    \includegraphics[width=0.6\textwidth]{../results/maps/NothernFO_weeds.png}
+  \caption{Uncommon Invasives in the Northern Field Office}
+\end{wrapfigure}
+
 A handful of the invasive species detected (Whitetops (*Cardaria chalepensis*, *Cardaria draba*, alternatively *Lepidum draba*), Canada thistle (*Cirsium arvense*), field bindweed (*Convolvulus arvensis*),  Timothy (*Phleum pratense*)), especially in the Northern Portion of the field office are generally associated with slightly more mesic conditions than occur at most BLM land, especially adjacent to irrigated pastures. Unless these populations are entrenched near streams, their spread is likely curtailed by the general aridity of BLM land, but their successful extirpation, in the face of continual re-colonization from adjacent pasture lands, or if they have invaded wetlands, is unlikely. Baby's Breath (*Gypsophila elegans*) may have been introduced for roadside plantings, and is worth eradication efforts (@pringle1993fna). *Cynoglossum officinale* is generally limited to higher elevation forested areas, and in the absence of forest fire it's spread may be slow on the portions of BLM land which it inhabits. A couple of these (Prairie Pepperweed (*Lepidium densiflorum*), prostrate knotweed (*Polygonum aviculare*)) are generally associated with heavily compacted soils, and tend to not spread aggressively outside of these areas. 
 
+
+\begin{wrapfigure}{l}{0.6\textwidth}
+  \centering
+    \includegraphics[width=0.6\textwidth]{../results/maps/allFO_weeds.png}
+  \caption{Distribution of Invasive Species Across the Field Office}
+\end{wrapfigure}
+
+A wide range of invasive species were present throughout the field office in a variety of habitats, and at varying abundances. 
 
 ```{r}
 rm(most_common_inv, inv_r_t, inv_richness, lpi_sum, invasive_sum)
@@ -376,6 +391,12 @@ rm(most_common_inv, inv_r_t, inv_richness, lpi_sum, invasive_sum)
 ```{r}
 
 ```
+
+\begin{wrapfigure}{l}{0.6\textwidth}
+  \centering
+    \includegraphics[width=0.6\textwidth]{../results/maps/invasive_index.png}
+  \caption{Invasive Index across the Field Office}
+\end{wrapfigure}
 
 
 \newpage
