@@ -13,9 +13,17 @@ bibliography: ../citations/citations/citations.bib
 link-citations: yes
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+knitr::opts_chunk$set(dpi = 300) 
+knitr::opts_chunk$set(message = F)
+knitr::opts_chunk$set(warning = F)
+knitr::opts_chunk$set(fig.align="left") 
+```
+
 \vspace{-1cm}
 
-One of the first acts in the life of a plant, as a seed, is to move. Generally seeds travel only short distances, but less common long distance movements are known to occur naturally (Section X.X), and long distance movement occurs regularly via humans. The long distance movement of seeds by humans, in recent history *i.e.* the last couple thousand years, may result in the seed germinating and the population (if any) which results from it surviving for only a few generations (*waif*) (@nesom2000non). A seed may also produce a population which is able to persist for many generations in the new ecosystem, and even disperse and spread out across their new landscape (*naturalized*); many of these species are readily incorporated into the existing vegetation and do little to alter it (@nesom2000non, @pyvsek2010invasive). A subset of these species which are able to naturalize may displace considerable amounts of the plant species already in the landscape, and in so doing alters the composition of species at ecological sites (*noxious*), hence also the functioning of these sites (*invasive*) (@davies2011plant, @evans2001exotic, @pyvsek2012global, @noxious2023blm,  *and reviewed in* @ehrenfeld2010ecosyste @pyvsek2010invasive).  That a few species can alter the properties of landscapes is at the core of the Ecological Sites. While all invasive plants are noxious, not all noxious plants are invasive, as can be seen from a number of native species which act as aggressive weeds in disturbed settings and which prevent natural succession.
+One of the first acts in the life of a plant, as a seed, is to move. Generally seeds travel only short distances, but less common long distance movements are known to occur naturally (Section X.X), and long distance movement occurs regularly via humans. The long distance movement of seeds by humans, in recent history *i.e.* the last couple thousand years, may result in the seed germinating and the population (if any) which results from it surviving for only a few generations (*waif*) (@nesom2000non). A seed may also produce a population which is able to persist for many generations in the new ecosystem, and even disperse and spread out across their new landscape (*naturalized*); many of these species are readily incorporated into the existing vegetation and do little to alter it (@nesom2000non, @pyvsek2010invasive). A subset of these species which are able to naturalize may displace considerable amounts of the plant species already in the landscape, and in so doing alters the composition of species at ecological sites (*noxious*), hence also the functioning of these sites (*invasive*) (@davies2011plant, @evans2001exotic, @pyvsek2012global, @noxious2023blm,  *and reviewed in* @ehrenfeld2010ecosystem, @pyvsek2010invasive).  That a few species can alter the properties of landscapes is at the core of the Ecological Sites. While all invasive plants are noxious, not all noxious plants are invasive, as can be seen from a number of native species which act as aggressive weeds in disturbed settings and which prevent natural succession.
 
 Noxious and invasive species adversely affect nearly all ecosystem services offered by natural areas, increase fire frequency and intensity, and have enormous economic impacts (*reviwed in* @ehrenfeld2010ecosystem, @d1992biological, @duncan2004assessing, @fantle2022economic, @crystal2021economic). Invasive species at landscape scales have been shown to decrease plant species richness, taxonomic, functional and structural diversity leading to declines in habitat heterogeneity and adversely affecting wildlife (@keeley2012fire, @ehrenfeld2010ecosystem, @klinger2017alternative). They pose serious threats to the well being of both wildlife, livestock, and humans, via interactions with historic land management alterations, to the fire cycle (@d1992biological, @keeley2012fire, @). The economic impacts of invasive species include enormous amounts of funds being channeled into their treatment to reduce fuel loads (), treatments to curtail their spread into new areas (), and losses in economic activity e.g. by displacement of grasses more suitable as forage for livestock (). 
 
@@ -26,6 +34,8 @@ Most land managers in the Western cold deserts (The Colorado Plateau, Great Basi
 ```{r load libraries}
 library(sf)
 library(tidyverse)
+library(spsurvey)
+#install.packages('FSA')
 
 source('functions.R')
 p <- file.path('..', 'data', 'raw')
@@ -195,7 +205,6 @@ inv_richness <- inv %>%
 ```
 
 
-
 ```{r Rescale three Proportions from zero to one and sum together for cartography}
 
 inv_carto <- inv_richness %>% 
@@ -216,22 +225,66 @@ inv_carto <- left_join(lpi_sum, inv_carto, by = "PLOTID") %>%
 carto_path <- '../../UFO_cartography'
 if (!dir.exists(file.path(carto_path, 'noxious'))) {dir.create(file.path(carto_path, 'noxious'))}
 st_write(inv_carto,  file.path(carto_path, 'noxious', 'noxious_index.shp'))
+
 ```
 
-```{r}
-ggplot() +
-  geom_sf(data = inv_carto, aes(fill = Prop_Inv2), shape = 23, size = 2) +
-  scale_fill_distiller(palette = "RdYlGn", direction = -1)
 
+```{r Perform Weighted Analysis of Noxious Plants, warning = F}
+
+meeting <- lpi_sum %>% 
+  mutate(Meeting = if_else(Proportion_Invasive  == 0, T, F)) %>% 
+  select(PLOTID, Meeting, Proportion_Invasive)
+
+esd_class <- read.csv( file.path(p, f[grep('Tracking', f)]) ) %>% 
+  filter(STATUS == 'SAMPLED') %>% 
+  mutate(ECO.SITE = if_else(ECO.SITE.MATCHED == F, 'UNKNOWN', ECO.SITE)) %>% 
+  select(PLOTID = PLOT.ID, ECO.SITE)
+
+wghts <- read.csv( file.path(p, f[grep('Weights', f)])) %>% 
+  select(WghtPerPlot, STRATUM = Stratum, AoInference = Area)
+
+meeting <- read.csv( file.path(p, f[grep('Interence', f)])) %>% 
+  select(PLOTID = Plot.ID, AoInference) %>% 
+  right_join(., meeting) %>% 
+  mutate(STRATUM = str_remove(str_extract(PLOTID, '^.*-'), '-')) %>% 
+  left_join(., wghts, by = c('STRATUM','AoInference')) %>% 
+  left_join(., esd_class, by = 'PLOTID') %>% 
+  st_as_sf()
+
+interspace_stab <- cat_analysis(
+  dframe = meeting, siteID = 'PLOTID', vars = 'Meeting',
+  subpops = 'AoInference',  weight = 'WghtPerPlot', vartype = 'Local', conf = 80)
+
+
+rm(wghts, esd_class, warn_df)
 ```
 
 
 ```{r Do Certain Ecosites appear less resistant to invasion}
 
-# remember the invasive should probably be in species richness but NOT on LPI?
+m1 <- meeting %>% 
+  group_by(ECO.SITE) %>% 
+  filter(ECO.SITE != 'UNKNOWN', n() >= 3) 
+
+kt <- kruskal.test(m1$Proportion_Invasive, as.factor(m1$ECO.SITE))
+
+dt_res <- FSA::dunnTest(Proportion_Invasive ~ as.factor(ECO.SITE),
+  data = m1,
+  method = "holm"
+)[['res']] %>% 
+  filter(P.adj < 0.8)
+
+Mdn <- group_by(m1, ECO.SITE) %>% 
+  summarize(count = n()) %>% 
+  ungroup() %>% st_drop_geometry() 
 
 ```
 
+To detect whether Ecological Sites differed in their resistance to noxious weed invasion a Kruskall-Wallis test was used (@kruskal1952use). Kruskal-Wallis was used due to non-normal data (heavily right skewed), and a small number of replicates for each Ecological Site. The Kruskall-Wallis test offered evidence of a difference (p = `r round(kt[["p.value"]], 3)`), to detect which Ecological Sites differed from others a two-sided Dunn's test with Holms correction for multiple testing was used as a *post-hoc* test (@dinno2017dunn, @ogle2022fsa, @holm1979simple, @dunn1964multiple). Once p-values were adjusted for multiple testing, as we had no *a-priori* hypothesis for which sites would be more resistant, there was no strong statistical evidence that any pairs were significantly different than any others. However, this is most certainly in part due to the very few number of plots per sites (Mdn = `r median(Mdn$count)`), and the large number of sites (total = `r length(unique(m1$ECO.SITE))`), rather than an actual lack of resistance in Ecological Sites.
+
+```{r remove some writing variables}
+rm(kt, m1, Mdn, meeting)
+```
 
 ```{r Which Species of Invasives compose most of the cover on plots}
 
@@ -280,7 +333,7 @@ most_common_inv <-  sort(
       table(inv_r_t$National_SciName_noAuthority))[
         length(unique(inv_r_t$SpeciesList)):(length(unique(inv_r_t$SpeciesList))-5)]
 
-mean(lpi_sum$Proportion_Invasive) * 100
+# mean(lpi_sum$Proportion_Invasive) * 100
 ```
 
 `r length(unique(inv_richness$SpeciesList))` introduced, and of these `r length(unique(inv_r_t$SpeciesList))` invasive species were detected across all `r` plots. `r length(unique(inv_r_t$PLOTID))` plots had invasive species on them, and `r group_by(inv_r_t, PLOTID) |> filter(n() >=2) |> distinct(PLOTID) |> nrow()` plots had more than one invasive species. When reducing these to species of immediate management concern `r` species were present at `r` plots (REVIEW THE LIST AND THIN IT). As expected, the species which occurred the most often were `r toString(names(most_common_inv))` at `r toString(as.numeric(most_common_inv))` of all plots respectively. Most of the species were present across the entirety of the field office, except for ca. a dozen species which were isolated to localities between Delta and Paonia (Figure XX). Several of these species generally occur in wetter, higher elevation, habitats than most terrestrial BLM Land and their spread to BLM is minimal; however a number of the populations are adjacent to USFS land (Figure XX). 
@@ -295,4 +348,10 @@ A caveat with detecting invasive species is that, in the study area, most of the
 ```{r}
 rm(most_common_inv, inv_r_t)
 ```
+
+
+\newpage
+
+# References
+
 
