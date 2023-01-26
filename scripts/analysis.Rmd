@@ -206,7 +206,7 @@ rm(spp_alpha, inv)
 ```
 
 
-```{r Rescale three Proportions from zero to one and sum together for cartography}
+```{r Rescale three Proportions from zero to one and sum together for cartography, fig.height=3.5, fig.width =3.5}
 
 inv_carto <- inv_richness %>% 
   mutate(across(.cols = Prop_Int:Prop_Inv, ~ scales::rescale(., to = c(0,1)))) %>% 
@@ -217,7 +217,31 @@ inv_carto <- left_join(lpi_sum, inv_carto, by = "PLOTID") %>%
   distinct(PLOTID, .keep_all = T) %>% 
   rowwise() %>% 
   mutate(Prop_Inv2 = sum(Proportion_Invasive + Prop_Inv + Prop_Int, na.rm = T)/3) %>% 
-  select(PLOTID, Index_Prop = Prop_Inv2)
+  select(PLOTID, Index_Prop = Prop_Inv2, Proportion_Invasive, Prop_Inv, Prop_Int)
+
+plot_vars <- inv_carto %>% 
+  st_drop_geometry() %>% 
+  pivot_longer(cols = c('Prop_Inv', 'Prop_Int', 'Proportion_Invasive'), 
+               names_to = 'Variable', values_to = 'Proportion') %>% 
+  mutate(Proportion = replace_na(Proportion, 0))
+
+cols <- c("Prop_Int" = '#f79489', 'Prop_Inv' = '#F6131E',
+          'Proportion_Invasive' =  '#9D060D')
+labs <- c('(Spp) Introduced', '(Spp) Invasive', '(Cover) Invasive')
+
+#summary( glm(Index_Prop ~  Proportion + Variable, family = "poisson", data = plot_vars) )
+
+ggplot(data = plot_vars, aes(x = Index_Prop, y = Proportion)) +
+  geom_point(aes(color = Variable, shape = Variable)) +
+  geom_smooth(colour = '#391306', method = 'glm') +
+  scale_color_manual('Proportion', values = cols, 
+                     labels = labs) +
+  scale_shape_manual('Proportion', values = c(15, 16, 17), 
+                     labels = labs) +
+  theme_bw(base_size = 10) +
+  theme(aspect.ratio = 1, legend.title = element_text(hjust = 0.5)) +
+  labs(title = 'Composite "Invasive Index"', x = 'Invasive Index', 
+       y = 'Proportion of Variables') 
 
 ```
 
@@ -342,7 +366,7 @@ There were `r nrow(unique(invasive_sum[invasive_sum$Invasive == T,'SYMBOL'] ))` 
 
 A caveat with detecting invasive species is that, in the study area, most of them are annuals (##/##). Given the exceptional drought conditions (SECTION XX) under which field work was conducted, it is quite likely that the estimated covers of them by plot are notably lower than are during more normal conditions (@mack1984demography, @bowers1987precipitation). While it seems that their presence at plots is unlikely to be altered, their abundances were likely understimated in most years of sampling (cite). 
 
-A handful of the invasive species detected (Whitetops (*Cardaria chalepensis*, *Cardaria draba*, alternatively *Lepidum draba*), Canada thistle (*Cirsium arvense*), field bindweed (*Convolvulus arvensis*),  Timothy (*Phleum pratense*)), especially in the Northern Portion of the field office are generally associated with slightly more mesic conditions than occur at most BLM land, especially adjacent to irrigated pastures. Unless these populations are entrenched near streams, their spread is likely curtailed by the general aridity of BLM land, but their successful extirpation, in the face of continual re-colonization from adjacent pasture lands, or if they have invaded wetlands, is unlikely. Baby's Breath (*Gypsophila elegans*) may have been introduced for roadside plantings, and is worth eradication efforts (@pringle1993fna). *Cynoglossum officinale* is generally limited to higher elevation forested areas, and in the absence of forest fire it's spread may be slow on the portions of BLM land which it inhabits. A couple of these (Prairie Pepperweed (*Lepidium densiflorum*), prostrate knotweed (*Polygonum aviculare*)) are generally associated with heavily compacted soils, and tend to not spread aggresively outside of these areas. 
+A handful of the invasive species detected (Whitetops (*Cardaria chalepensis*, *Cardaria draba*, alternatively *Lepidum draba*), Canada thistle (*Cirsium arvense*), field bindweed (*Convolvulus arvensis*),  Timothy (*Phleum pratense*)), especially in the Northern Portion of the field office are generally associated with slightly more mesic conditions than occur at most BLM land, especially adjacent to irrigated pastures. Unless these populations are entrenched near streams, their spread is likely curtailed by the general aridity of BLM land, but their successful extirpation, in the face of continual re-colonization from adjacent pasture lands, or if they have invaded wetlands, is unlikely. Baby's Breath (*Gypsophila elegans*) may have been introduced for roadside plantings, and is worth eradication efforts (@pringle1993fna). *Cynoglossum officinale* is generally limited to higher elevation forested areas, and in the absence of forest fire it's spread may be slow on the portions of BLM land which it inhabits. A couple of these (Prairie Pepperweed (*Lepidium densiflorum*), prostrate knotweed (*Polygonum aviculare*)) are generally associated with heavily compacted soils, and tend to not spread aggressively outside of these areas. 
 
 
 ```{r}
