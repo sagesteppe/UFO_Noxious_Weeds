@@ -33,8 +33,8 @@ Most land managers in the Western cold deserts (The Colorado Plateau, Great Basi
 
 ```{r load libraries}
 library(sf)
-library(tidyverse)
 library(spsurvey)
+library(tidyverse)
 #install.packages('FSA')
 
 source('functions.R')
@@ -154,8 +154,8 @@ lpi <- bind_cols(lpi, Invasive = Invasive)
 # percent cover of all plants
 lpi_sum <- lpi %>% 
   group_by(PrimaryKey) %>% 
-  summarize(Vascular_Intercepts =  150 - sum(is.na(TopCanopy)),
-         Invasive_Intercepts = sum(Invasive))
+  dplyr::summarize(Vascular_Intercepts = 150 - sum(is.na(TopCanopy)),
+            Invasive_Intercepts = sum(Invasive))
 
 # join up
 lpi_sum <- left_join(lpi_sum, select(spp_alpha, PLOTID, PrimaryKey) %>% 
@@ -202,6 +202,7 @@ inv_richness <- inv %>%
   mutate(Prop_Int = No_Introduced/No_Spp,
            Prop_Inv = No_Invasive/No_Spp)
 
+rm(spp_alpha, inv)
 ```
 
 
@@ -251,12 +252,11 @@ meeting <- read.csv( file.path(p, f[grep('Interence', f)])) %>%
   left_join(., esd_class, by = 'PLOTID') %>% 
   st_as_sf()
 
-interspace_stab <- cat_analysis(
+noxious_cover_analysis <- cat_analysis(
   dframe = meeting, siteID = 'PLOTID', vars = 'Meeting',
   subpops = 'AoInference',  weight = 'WghtPerPlot', vartype = 'Local', conf = 80)
 
-
-rm(wghts, esd_class, warn_df)
+rm(wghts, esd_class, warn_df, inv_carto, f, p)
 ```
 
 
@@ -267,7 +267,6 @@ m1 <- meeting %>%
   filter(ECO.SITE != 'UNKNOWN', n() >= 3) 
 
 kt <- kruskal.test(m1$Proportion_Invasive, as.factor(m1$ECO.SITE))
-
 dt_res <- FSA::dunnTest(Proportion_Invasive ~ as.factor(ECO.SITE),
   data = m1,
   method = "holm"
@@ -275,9 +274,10 @@ dt_res <- FSA::dunnTest(Proportion_Invasive ~ as.factor(ECO.SITE),
   filter(P.adj < 0.8)
 
 Mdn <- group_by(m1, ECO.SITE) %>% 
-  summarize(count = n()) %>% 
+  dplyr::summarize(count = n()) %>% 
   ungroup() %>% st_drop_geometry() 
 
+rm(dt_res)
 ```
 
 To detect whether Ecological Sites differed in their resistance to noxious weed invasion a Kruskall-Wallis test was used (@kruskal1952use). Kruskal-Wallis was used due to non-normal data (heavily right skewed), and a small number of replicates for each Ecological Site. The Kruskall-Wallis test offered evidence of a difference (p = `r round(kt[["p.value"]], 3)`), to detect which Ecological Sites differed from others a two-sided Dunn's test with Holms correction for multiple testing was used as a *post-hoc* test (@dinno2017dunn, @ogle2022fsa, @holm1979simple, @dunn1964multiple). Once p-values were adjusted for multiple testing, as we had no *a-priori* hypothesis for which sites would be more resistant, there was no strong statistical evidence that any pairs were significantly different than any others. However, this is most certainly in part due to the very few number of plots per sites (Mdn = `r median(Mdn$count)`), and the large number of sites (total = `r length(unique(m1$ECO.SITE))`), rather than an actual lack of resistance in Ecological Sites.
@@ -286,9 +286,7 @@ To detect whether Ecological Sites differed in their resistance to noxious weed 
 rm(kt, m1, Mdn, meeting)
 ```
 
-```{r Which Species of Invasives compose most of the cover on plots}
-
-vasc_total <- select(lpi_sum, PLOTID, Vascular_Intercepts) %>% distinct()
+```{r Gather localities of weeds for mapping}
 
 r <- left_join(select(lpi_sum, PLOTID, Vascular_Intercepts) %>% distinct(), 
                invasive_sum, by= 'PLOTID')  %>% 
@@ -301,7 +299,6 @@ r_locations <- r %>%
   add_count(SYMBOL) %>% 
   filter(Invasive == T)
 
-
 ne_weeds <- c('ALDE','CACH42','CADR','CIAR4', 'COAR4', 
                 'CYOF', 'GYEL', 'LEDE', 'PHPR3', 'POAR8', 'POAV', 'TARA')
 ne_labels <- filter(invasive_species, National_USDASymbol %in% ne_weeds) %>% 
@@ -309,6 +306,8 @@ ne_labels <- filter(invasive_species, National_USDASymbol %in% ne_weeds) %>%
 
 r_locations_ne <- r_locations %>% filter(SYMBOL %in% ne_weeds)
 r_locations <- r_locations %>% filter(!SYMBOL %in% ne_weeds)
+
+rm(lpi, vasc_total, r, invasive_species, ne_weeds, ne_labels)
 ```
 
 
@@ -321,7 +320,6 @@ st_write(r_locations, file.path(carto_path, 'noxious', 'noxious_all.shp'),
 
 ```
 
-
 # Results
 
 ```{r Prepare some writing results}
@@ -333,7 +331,7 @@ most_common_inv <-  sort(
       table(inv_r_t$National_SciName_noAuthority))[
         length(unique(inv_r_t$SpeciesList)):(length(unique(inv_r_t$SpeciesList))-5)]
 
-# mean(lpi_sum$Proportion_Invasive) * 100
+rm(r_locations_ne, r_locations)
 ```
 
 `r length(unique(inv_richness$SpeciesList))` introduced, and of these `r length(unique(inv_r_t$SpeciesList))` invasive species were detected across all `r` plots. `r length(unique(inv_r_t$PLOTID))` plots had invasive species on them, and `r group_by(inv_r_t, PLOTID) |> filter(n() >=2) |> distinct(PLOTID) |> nrow()` plots had more than one invasive species. When reducing these to species of immediate management concern `r` species were present at `r` plots (REVIEW THE LIST AND THIN IT). As expected, the species which occurred the most often were `r toString(names(most_common_inv))` at `r toString(as.numeric(most_common_inv))` of all plots respectively. Most of the species were present across the entirety of the field office, except for ca. a dozen species which were isolated to localities between Delta and Paonia (Figure XX). Several of these species generally occur in wetter, higher elevation, habitats than most terrestrial BLM Land and their spread to BLM is minimal; however a number of the populations are adjacent to USFS land (Figure XX). 
@@ -342,11 +340,17 @@ A component of reference condition for all Ecological Sites is that invasive spe
 
 There were `r nrow(unique(invasive_sum[invasive_sum$Invasive == T,'SYMBOL'] ))` species which were detected on LPI lines at `r nrow(lpi_sum[lpi_sum$Proportion_Invasive>0,])` plots, and of these species `r` were of immediate management concern.  The proportion of all vegetation cover which was invasive at plots varied from `r min(lpi_sum$Proportion_Invasive)`% to `r max(lpi_sum$Proportion_Invasive) * 100`% (Mdn = `r round(median(lpi_sum$Proportion_Invasive) * 100, 2)`, mean = `r round(mean(lpi_sum$Proportion_Invasive) * 100,2)`). In general, the few plots with exceptionally high cover of invasive species were small parcels of BLM land adjacent to roads, and private lands, in low elevation areas near Delta (figure XX). 
 
-A caveat with detecting invasive species is that, in the study area, most of them are annuals (##/##). Given the exceptional drought conditions (SECTION XX) under which field work was conducted, it is quite likely that the estimated covers of them by plot are notably lower than are during more normal conditions (@mack1984demography, @bowers1987precipitation). 
+A caveat with detecting invasive species is that, in the study area, most of them are annuals (##/##). Given the exceptional drought conditions (SECTION XX) under which field work was conducted, it is quite likely that the estimated covers of them by plot are notably lower than are during more normal conditions (@mack1984demography, @bowers1987precipitation). While it seems that their presence at plots is unlikely to be altered, their abundances were likely understimated in most years of sampling (cite). 
+
+A handful of the invasive species detected (Whitetops (*Cardaria chalepensis*, *Cardaria draba*, alternatively *Lepidum draba*), Canada thistle (*Cirsium arvense*), field bindweed (*Convolvulus arvensis*),  Timothy (*Phleum pratense*)), especially in the Northern Portion of the field office are generally associated with slightly more mesic conditions than occur at most BLM land, especially adjacent to irrigated pastures. Unless these populations are entrenched near streams, their spread is likely curtailed by the general aridity of BLM land, but their successful extirpation, in the face of continual re-colonization from adjacent pasture lands, or if they have invaded wetlands, is unlikely. Baby's Breath (*Gypsophila elegans*) may have been introduced for roadside plantings, and is worth eradication efforts (@pringle1993fna). *Cynoglossum officinale* is generally limited to higher elevation forested areas, and in the absence of forest fire it's spread may be slow on the portions of BLM land which it inhabits. A couple of these (Prairie Pepperweed (*Lepidium densiflorum*), prostrate knotweed (*Polygonum aviculare*)) are generally associated with heavily compacted soils, and tend to not spread aggresively outside of these areas. 
 
 
 ```{r}
-rm(most_common_inv, inv_r_t)
+rm(most_common_inv, inv_r_t, inv_richness, lpi_sum, invasive_sum)
+```
+
+```{r}
+
 ```
 
 
