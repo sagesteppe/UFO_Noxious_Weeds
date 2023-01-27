@@ -97,6 +97,8 @@ rm(attributes, invasive_species)
 
 To develop a list of invasive plant species for the study area 'IRanks', a semi-quantitative expert based assessment of introduced species, were extracted from the C-Values prepared by the Colorado Natural Heritage Program (Section X.X) (@moore2004iranks, @cnhp2020fqi).  This was combined with an AIM species attribute table extract from the vicinity of the study area, the latter dataset contained a handful of synonyms which included codes not present in the former.
 
+Once this list was developed and underwent review, the cleaned AIM data maintained on TerraDat had both the Species Richness and Line-point Intercept data downloaded, and reprocessed to determine both the presence and absence of species and, when present at LPI location their percent fractional cover. In order to determine what percent of the field office were meeting benchmark reference condition, which is the same for all Ecological Sites - the lack of invasive species, if an invasive was detected on a plot it was considered to be failing to meet benchmarks. These plots then underwent categorical analysis using *cat_analysis*, in the 'spsurvey' package, with confidence interval of 0.8, (@dumelle2022sp), and the 'local' (default) variance estimator.
+
 ```{r import species richness data and tie to plots}
 
 plot_char <- read.csv( file.path(p, f[grep('Characterization', f)]) ) %>% 
@@ -135,7 +137,6 @@ spp_alpha <- st_intersection(pts, spp_alpha) %>%
 
 rm(plot_char, pts, esd_class)
 ```
-
 
 ```{r import LPI data and tie to plots}
 
@@ -185,7 +186,6 @@ invasive_sum <- left_join(lpi2, select(spp_alpha, PLOTID, PrimaryKey) %>%
 rm(Invasive, inv_present, lpi2)
 ```
 
-
 ```{r Join invasive species and process raw data}
 
 inv <- spp_alpha %>% 
@@ -204,7 +204,6 @@ inv_richness <- inv %>%
 
 rm(spp_alpha, inv)
 ```
-
 
 ```{r Rescale three Proportions from zero to one and sum together for cartography, fig.height=3.5, fig.width =3.5}
 
@@ -253,7 +252,6 @@ st_write(inv_carto,  file.path(carto_path, 'noxious', 'noxious_index.shp'))
 
 ```
 
-
 ```{r Perform Weighted Analysis of Noxious Plants, warning = F}
 
 meeting <- lpi_sum %>% 
@@ -282,7 +280,6 @@ noxious_cover_analysis <- cat_analysis(
 
 rm(wghts, esd_class, warn_df, inv_carto, f, p)
 ```
-
 
 ```{r Do Certain Ecosites appear less resistant to invasion}
 
@@ -377,7 +374,7 @@ A component of reference condition for all Ecological Sites is that invasive spe
 
 There were `r nrow(unique(invasive_sum[invasive_sum$Invasive == T,'SYMBOL'] ))` species which were detected on LPI lines at `r nrow(lpi_sum[lpi_sum$Proportion_Invasive>0,])` plots, and of these species `r` were of immediate management concern.  The proportion of all vegetation cover which was invasive at plots varied from `r min(lpi_sum$Proportion_Invasive)`% to `r max(lpi_sum$Proportion_Invasive) * 100`% (Mdn = `r round(median(lpi_sum$Proportion_Invasive) * 100, 2)`, mean = `r round(mean(lpi_sum$Proportion_Invasive) * 100,2)`). In general, the few plots with exceptionally high cover of invasive species were small parcels of BLM land adjacent to roads, and private lands, in low elevation areas near Delta (figure XX). 
 
-A caveat with detecting invasive species is that, in the study area, most of them are annuals (##/##). Given the exceptional drought conditions (SECTION XX) under which field work was conducted, it is quite likely that the estimated covers of them by plot are notably lower than are during more normal conditions (@mack1984demography, @bowers1987precipitation). While it seems that their presence at plots is unlikely to be altered, their abundances were likely understimated in most years of sampling (cite). 
+A caveat with detecting invasive species is that, in the study area, most of them are annuals (##/##). Given the exceptional drought conditions (SECTION XX) under which field work was conducted, it is quite likely that the estimated covers of them by plot are notably lower than are during more normal conditions (@mack1984demography, @bowers1987precipitation). While it seems that their presence at plots is unlikely to be altered, their abundances were likely underestimated in most years of sampling (cite). The relationships between the proportion of introduced species as a function of all species at a plot, the proportion of invasive species (a subset of introduced species), and the proportion of invasive species cover at a plot were highly correlated, and they were combined into a single metric, 'Invasibility Index' (Figure 1). We suspect that this index is more indicative of the status of a plot in a year with more normal precipitation, as can be seen in Figure 1, the data from the time period generally has a large cluster of invasive cover in the lower left of the plot from (0 - 0.25 on the index axis, beneath the line), which is less representative of the potential for invasive cover to expand rapidly under normal conditions. 
 
 
 \begin{wrapfigure}{r}{0.6\textwidth}
