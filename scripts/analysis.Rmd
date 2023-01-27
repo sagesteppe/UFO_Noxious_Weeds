@@ -38,6 +38,7 @@ library(tidyverse)
 library(waffle)
 library(hrbrthemes)
 #install.packages('FSA')
+hrbrthemes::import_roboto_condensed() 
 
 source('functions.R')
 p <- file.path('..', 'data', 'raw')
@@ -121,7 +122,7 @@ pts <- st_read(
   '/media/sagesteppe/ExternalHD/aimDB/data/raw/AIM_Sample_Design/AIM_Design_Stratification.shp',
                 quiet = T) %>% 
   st_transform(26913) %>% 
-  st_buffer(100) %>% 
+  st_buffer(55) %>% 
   select(PLOTID, STRATUM)
 
 spp_alpha <- spp_alpha %>% 
@@ -179,6 +180,8 @@ lpi2 <- lpi %>%
   filter(SYMBOL %in% invasive_species$National_USDASymbol) %>% 
   ungroup()
 
+# something wrong, i have duplicates on 
+
 invasive_sum <- left_join(lpi2, select(spp_alpha, PLOTID, PrimaryKey) %>% 
                        distinct(), by = 'PrimaryKey') %>% 
   select(-PrimaryKey, -geometry) %>% 
@@ -214,7 +217,7 @@ inv_plots <- select(inv, PLOTID, ECO.SITE, No_Spp, No_Introduced, No_Invasive)  
 rm(spp_alpha, inv)
 ```
 
-```{r Rescale three Proportions from zero to one and sum together for cartography, fig.height=3.5, fig.width =3.5}
+```{r Rescale three Proportions from zero to one and sum together for cartography}
 
 inv_carto <- inv_richness %>% 
   mutate(across(.cols = Prop_Int:Prop_Inv, ~ scales::rescale(., to = c(0,1)))) %>% 
@@ -232,14 +235,16 @@ plot_vars <- inv_carto %>%
   pivot_longer(cols = c('Prop_Inv', 'Prop_Int', 'Proportion_Invasive'), 
                names_to = 'Variable', values_to = 'Proportion') %>% 
   mutate(Proportion = replace_na(Proportion, 0))
+```
 
+```{r Plot rescaled invasive index, eval = F}
 cols <- c("Prop_Int" = '#f79489', 'Prop_Inv' = '#F6131E',
           'Proportion_Invasive' =  '#9D060D')
 labs <- c('(Spp) Introduced', '(Spp) Invasive', '(Cover) Invasive')
 
 #summary( glm(Index_Prop ~  Proportion + Variable, family = "poisson", data = plot_vars) )
 
-ggplot(data = plot_vars, aes(x = Index_Prop, y = Proportion)) +
+ii <- ggplot(data = plot_vars, aes(x = Index_Prop, y = Proportion)) +
   geom_point(aes(color = Variable, shape = Variable)) +
   geom_smooth(colour = '#391306', method = 'glm') +
   scale_color_manual('Proportion', values = cols, 
@@ -251,7 +256,18 @@ ggplot(data = plot_vars, aes(x = Index_Prop, y = Proportion)) +
   labs(title = 'Composite "Invasive Index"', x = 'Invasive Index', 
        y = 'Proportion of Variables') 
 
+ggsave(ii, path = '../results/figures', device = 'png', bg = 'transparent',
+       filename = 'invasive_index.png', dpi = 300, height = 3.5, units = "in")
+
+rm(ii, cols, labs)
 ```
+
+\begin{wrapfigure}{r}{0.5\textwidth}
+  \centering
+    \includegraphics[width=0.5\textwidth]{../results/figures/invasive_index.png}
+  \caption{Distribution of Invasive Species Across the Field Office}
+\end{wrapfigure}
+
 
 ```{r Write out data for three index plot, eval = F}
 
@@ -295,7 +311,7 @@ meeting <- lpi_sum %>%
 
 meeting <- read.csv( file.path(p, f[grep('Interence', f)])) %>% 
   select(PLOTID = Plot.ID, AoInference) %>% 
-  right_join(., meeting) %>% 
+  right_join(., meeting, by = "PLOTID") %>% 
   mutate(STRATUM = str_remove(str_extract(PLOTID, '^.*-'), '-')) %>% 
   left_join(., wghts, by = c('STRATUM','AoInference')) %>% 
   left_join(., esd_class, by = 'PLOTID') %>% 
@@ -305,7 +321,7 @@ noxious_cover_analysis <- cat_analysis(
   dframe = meeting, siteID = 'PLOTID', vars = 'Meeting',
   subpops = 'AoInference',  weight = 'WghtPerPlot', vartype = 'Local', conf = 80)
 
-rm(wghts, esd_class, warn_df, inv_carto, f, p)
+rm(wghts, esd_class, warn_df, inv_carto, f, p, inv_plots)
 ```
 
 ```{r Do Certain Ecosites appear less resistant to invasion}
@@ -355,7 +371,7 @@ ne_labels <- filter(invasive_species, National_USDASymbol %in% ne_weeds) %>%
 r_locations_ne <- r_locations %>% filter(SYMBOL %in% ne_weeds)
 r_locations <- r_locations %>% filter(!SYMBOL %in% ne_weeds)
 
-rm(lpi, vasc_total, r, invasive_species, ne_weeds, ne_labels)
+rm(lpi, r, invasive_species, ne_weeds, ne_labels)
 ```
 
 
@@ -366,6 +382,70 @@ st_write(r_locations_ne, file.path(carto_path, 'noxious', 'noxious_NE.shp'),
 st_write(r_locations, file.path(carto_path, 'noxious', 'noxious_all.shp'), 
          quiet = T, append = F)
 
+```
+
+
+```{r Prepare figures of amount of field office meeting objectives, eval = F}
+
+noxious_presence_analysis <- noxious_presence_analysis %>% 
+  mutate(Method = 'SR_Presence')
+waff_dat <- noxious_cover_analysis %>% 
+  mutate(Method = 'LPI_Presence') %>% 
+  bind_rows(noxious_presence_analysis, .) %>% 
+  filter(Category == T) 
+
+waff_dat <- waff_dat %>% 
+  mutate(
+    across(where(is.numeric), ~ round(.x, 0)),
+    Low = if_else(LCB80Pct.P == 0, 0, LCB80Pct.P - 1),
+    CI_Low = Estimate.P - LCB80Pct.P,
+    Estimate = 1,
+    CI_High = UCB80Pct.P - Estimate.P,
+    High = if_else(UCB80Pct.P == 0, 100, 100 - UCB80Pct.P)
+  ) %>% 
+  rowwise(Subpopulation) %>% 
+  mutate(High = if_else(sum(c_across(Low:High)) > 100, High -1, High),
+         High = if_else(sum(c_across(Low:High)) < 100, High + 1, High))  %>% 
+  select(Subpopulation, Method,  Low:High) %>% 
+  pivot_longer(cols = Low:High, names_to = 'Statistic', values_to = 'Value') %>% 
+  group_by(Subpopulation) %>% 
+  mutate(
+    Method = factor(Method, levels = c('SR_Presence', 'LPI_Presence')),
+    Statistic = factor(Statistic,
+                       levels = c('Low', 'CI_Low', 'Estimate', 'CI_High', 'High')), 
+    Subpopulation = factor(Subpopulation,
+                       levels = c('ACEC-WSA', 'DE-NM', 'GG-NM', 'SampleFrame')))
+
+waff_dat <- data.table::setorder(waff_dat, Statistic)
+waf_values = c('Low' = '#1FE032', 'High' = '#E0321F', 'CI_Low' = '#808929', 
+               'Estimate' = 'black', 'CI_High' = '#808929')
+meth_labs = setNames(c("Richness", "LPI"), c('SR_Presence', "LPI_Presence"))
+
+w <- ggplot(waff_dat, aes(fill = Statistic, values = Value)) +
+  geom_waffle(color = "white", size = .25, flip = TRUE) +
+  facet_grid(vars(Subpopulation), vars(Method), 
+             labeller = labeller(Method = meth_labs)) +
+  scale_fill_manual('Condition', values = waf_values, 
+                    labels = c('Meeting', 'Conf. Int.', "Estimate", 'Conf. Int.', 'Failing')) +
+  scale_x_discrete()  +
+  scale_y_continuous('Percent Land', labels = function(x)round(x * 10, -1), expand = c(0,0))  +
+  
+  theme(
+    legend.position="bottom", legend.direction="vertical",
+    aspect.ratio = 1,
+    axis.text.y = element_text(color = "grey20", size = 6, angle = 45),
+    axis.title.y = element_text(size = 9),
+    legend.key.size = unit(0.3, 'lines'),
+    legend.text = element_text(size = 6),
+    legend.title = element_text(hjust = 0.5, size = 8), 
+    plot.title = element_text(hjust = 0.5, size = 10, face = 'bold'),
+    panel.spacing = unit(0.4, "lines"), 
+    strip.background =element_rect(fill="white"), 
+    panel.background = element_blank()) +
+  guides(fill=guide_legend(ncol=2))
+
+ggsave(w, path = '../results/figures', device = 'png', bg = 'transparent',
+       filename = 'waffles.png', dpi = 300, height = 4, units = "in")
 ```
 
 # Results
@@ -379,13 +459,16 @@ most_common_inv <-  sort(
       table(inv_r_t$National_SciName_noAuthority))[
         length(unique(inv_r_t$SpeciesList)):(length(unique(inv_r_t$SpeciesList))-5)]
 
-rm(r_locations_ne, r_locations)
+nox_Pres <- filter(noxious_presence_analysis, Category %in% c(T, 'Total'))
+nox_Cov <- filter(noxious_cover_analysis, Category %in% c(T, 'Total'))
+
+rm(r_locations_ne, r_locations, noxious_presence_analysis, noxious_cover_analysis)
 ```
 
 
-\begin{wrapfigure}{r}{0.6\textwidth}
+\begin{wrapfigure}{r}{0.5\textwidth}
   \centering
-    \includegraphics[width=0.6\textwidth]{../results/maps/allFO_weeds.png}
+    \includegraphics[width=0.5\textwidth]{../results/maps/allFO_weeds.png}
   \caption{Distribution of Invasive Species Across the Field Office}
 \end{wrapfigure}
 
@@ -393,9 +476,9 @@ rm(r_locations_ne, r_locations)
 
 A component of reference condition for all Ecological Sites is that invasive species are not present. By this metric the plots which would be meeting their benchmarks is quite low (`r length(unique(inv_r_t$PLOTID))`), however we feel another consideration is whether an invasive species was detected on the Line-Point Intercepts (Section XX). As reference condition benchmarks still have considerable association with pre-Columbian times ecology, and much has changed in the interim, we believe each of these plots deserves another more liberal consideration. Of the plots which had invasive species, they were detected via line-point intercept at `r  nrow(lpi_sum[lpi_sum$Proportion_Invasive>0,])` of them.  
 
-\begin{wrapfigure}{l}{0.7\textwidth}
+\begin{wrapfigure}{l}{0.6\textwidth}
   \centering
-    \includegraphics[width=0.7\textwidth]{../results/maps/invasive_index.png}
+    \includegraphics[width=0.6\textwidth]{../results/maps/invasive_index.png}
   \caption{Invasive Index across the Field Office}
 \end{wrapfigure}
 
@@ -404,70 +487,31 @@ There were `r nrow(unique(invasive_sum[invasive_sum$Invasive == T,'SYMBOL'] ))` 
 A caveat with detecting invasive species is that, in the study area, most of them are annuals (##/##). Given the exceptional drought conditions (SECTION XX) under which field work was conducted, it is quite likely that the estimated covers of them by plot are notably lower than are during more normal conditions (@mack1984demography, @bowers1987precipitation). While it seems that their presence at plots is unlikely to be altered, their abundances were likely underestimated in most years of sampling (cite). The relationships between the proportion of introduced species as a function of all species at a plot, the proportion of invasive species (a subset of introduced species), and the proportion of invasive species cover at a plot were highly correlated, and they were combined into a single metric, 'Invasibility Index' (Figure 1). We suspect that this index is more indicative of the status of a plot in a year with more normal precipitation, as can be seen in Figure 1, the data from the time period generally has a large cluster of invasive cover in the lower left of the plot from (0 - 0.25 on the index axis, beneath the line), which is less representative of the potential for invasive cover to expand rapidly under normal conditions. 
 
 
-\begin{wrapfigure}{r}{0.6\textwidth}
+\begin{wrapfigure}{r}{0.5\textwidth}
   \centering
-    \includegraphics[width=0.6\textwidth]{../results/maps/NothernFO_weeds.png}
+    \includegraphics[width=0.5\textwidth]{../results/maps/NothernFO_weeds.png}
   \caption{Uncommon Invasives in the Northern Field Office}
 \end{wrapfigure}
 
 A handful of the invasive species detected (Whitetops (*Cardaria chalepensis*, *Cardaria draba*, alternatively *Lepidum draba*), Canada thistle (*Cirsium arvense*), field bindweed (*Convolvulus arvensis*),  Timothy (*Phleum pratense*)), especially in the Northern Portion of the field office are generally associated with slightly more mesic conditions than occur at most BLM land, especially adjacent to irrigated pastures. Unless these populations are entrenched near streams, their spread is likely curtailed by the general aridity of BLM land, but their successful extirpation, in the face of continual re-colonization from adjacent pasture lands, or if they have invaded wetlands, is unlikely. Baby's Breath (*Gypsophila elegans*) may have been introduced for roadside plantings, and is worth eradication efforts (@pringle1993fna). Houndstongue *Cynoglossum officinale* is generally limited to higher elevation forested areas, and in the absence of forest fire it's spread may be slow on the portions of BLM land which it inhabits. A couple of these (Prairie Pepperweed (*Lepidium densiflorum*), prostrate knotweed (*Polygonum aviculare*)) are generally associated with heavily compacted soils, and tend to not spread aggressively outside of these areas. 
 
 
-```{r Prepare figures of amount of field office meeting objectives}
-
-waff_dat <- noxious_cover_analysis %>% 
-  filter(Category == T) %>% 
-  mutate(
-    across(where(is.numeric), ~ round(.x, 0)),
-    Low = if_else(LCB80Pct.P == 0, 0, LCB80Pct.P - 1),
-    CI_Low = Estimate.P - LCB80Pct.P,
-    Estimate = 1,
-    CI_High = UCB80Pct.P - Estimate.P,
-    High = if_else(UCB80Pct.P == 0, 0, 100 - UCB80Pct.P)
-  ) %>% 
-  rowwise(Subpopulation) %>% 
-  mutate(High = if_else(sum(c_across(Low:High)) > 100, High -1, High),
-         High = if_else(sum(c_across(Low:High)) < 100, High + 1, High))  %>% 
-  select(Subpopulation, Low:High) %>% 
-  pivot_longer(!Subpopulation, names_to = 'Statistic', values_to = 'Value') %>% 
-  group_by(Subpopulation) %>% 
-  mutate(
-    Statistic = factor(Statistic,
-                       levels = c('Low', 'CI_Low', 'Estimate', 'CI_High', 'High')), 
-    Subpopulation = factor(Subpopulation,
-                       levels = c('ACEC-WSA', 'DE-NM', 'GG-NM', 'SampleFrame')))
-
-waff_dat <- data.table::setorder(waff_dat, Statistic)
-waf_values = c('Low' = '#1FE032', 'High' = '#E0321F', 'CI_Low' = '#808929', 
-               'Estimate' = 'black', 'CI_High' = '#808929')
+\begin{wrapfigure}{r}{0.4\textwidth}
+  \centering
+    \includegraphics[width=0.4\textwidth]{../results/figures/waffles.png}
+  \caption{Percent of Each Area meeting Benchmarks}
+\end{wrapfigure}
 
 
-ggplot(waff_dat, aes(fill = Statistic, values = Value)) +
-  geom_waffle(color = "white", size = .25, flip = TRUE) +
-  facet_wrap(~ Subpopulation) +
-  scale_fill_manual('Condition', values = waf_values, 
-                    labels = c('Meeting', 'Conf. Int.', "Estimate", 'Conf. Int.', 'Failing')) +
-  scale_x_discrete()  +
-  scale_y_continuous(labels = function(x)round(x * 10, -1), expand = c(0,0))  +
-  
-  theme(
-    legend.position="left",
-    aspect.ratio = 1,
-    legend.key.size = unit(0.7, 'lines'),
-    legend.title = element_text(hjust = 0.5, size = 10), 
-    plot.title = element_text(hjust = 0.5, size = 11, face = 'bold'),
-    panel.spacing = unit(0.01, "lines"), 
-    strip.background =element_rect(fill="white"), 
-    panel.background = element_blank())
+A wide range of invasive species were present throughout the field office in a variety of habitats, and at varying abundances (Figure XX). All four areas of analysis within the field office, the ACEC's - WSA's, and the Dominguez-Escalente and Gunnison Gorge National Monuments failed to meet management objectives for being in reference condition (80% of the first three, and 70% of the remaining land) (Figure XX, panel 1). In fact none of the confidence intervals even approached the estimates required to be considered successful, the closest upper bound of a confidence interval was `r round(max(nox_Pres$Category == T), 2)`% associated with an estimate of `r round(nox_Pres[which.max(nox_Pres$UCB80Pct.P),'Estimate.P'], 0)`% and it's variability largely attributable to a small sample size of `r nox_Pres[which.max(nox_Pres$UCB80Pct.P, noxPres$Category == 'Total'),'nResp']`
 
-waff_dat %>% group_by(Subpopulation) %>% mutate(t = sum(Value))
 
-```
-
-A wide range of invasive species were present throughout the field office in a variety of habitats, and at varying abundances (Figure XX). All four areas of analysis within the field office, the ACEC's - WSA's, and the Dominguez-Escalente and Gunnison Gorge National Monuments failed to meet management objectives for being in reference condition (80% of the first three, and 70% of the remaining land) (Figure XX, panel 1). 
-They further all failed objectives if invasives were reduced to only presences on LPI positions (Figure XX, panel 2). 
+They further all failed objectives if invasive species presences were reduced to only occurrences on LPI positions (Figure XX, panel 2). 
 
 ```{r}
+mpx
+nox_Pres$Category==T
+
 rm(most_common_inv, inv_r_t, inv_richness, lpi_sum, invasive_sum)
 ```
 
