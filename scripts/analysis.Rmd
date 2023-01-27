@@ -194,15 +194,22 @@ inv <- spp_alpha %>%
   left_join(., invasive_species, by = c('SpeciesList' = 'National_USDASymbol')) %>% 
   group_by(PLOTID) %>% 
   add_count(name = 'No_Spp') %>% 
-  group_by(PLOTID, National_NativeStatus) %>%
-  add_count(name = 'No_Introduced') %>% 
-  group_by(PLOTID, Invasive) %>%  
-  add_count(name = 'No_Invasive') 
+  group_by(PLOTID) %>% 
+  mutate(INTRO_CNT = if_else(National_NativeStatus %in% c('Both', 'Introduced'), 1, 0 ),
+         No_Introduced = sum(INTRO_CNT)) %>% 
+  mutate(INVAS_CNT = if_else(Invasive == T, 1, 0 ),
+         No_Invasive = sum(INVAS_CNT, na.rm =T)) %>% 
+  select(-INVAS_CNT, -INTRO_CNT) %>% 
+  ungroup(PLOTID)
 
 inv_richness <- inv %>% 
   drop_na(National_SciName_noAuthority) %>% 
   mutate(Prop_Int = No_Introduced/No_Spp,
            Prop_Inv = No_Invasive/No_Spp)
+
+inv_plots <- select(inv, PLOTID, ECO.SITE, No_Spp, No_Introduced, No_Invasive)  %>% 
+  group_by(PLOTID) %>% 
+  slice_max(No_Invasive, n = 1, with_ties = F)
 
 rm(spp_alpha, inv)
 ```
@@ -256,17 +263,35 @@ st_write(inv_carto,  file.path(carto_path, 'noxious', 'noxious_index.shp'))
 
 ```{r Perform Weighted Analysis of Noxious Plants, warning = F}
 
-meeting <- lpi_sum %>% 
-  mutate(Meeting = if_else(Proportion_Invasive  == 0, T, F)) %>% 
-  select(PLOTID, Meeting, Proportion_Invasive)
+wghts <- read.csv( file.path(p, f[grep('Weights', f)])) %>% 
+  select(WghtPerPlot, STRATUM = Stratum, AoInference = Area)
 
 esd_class <- read.csv( file.path(p, f[grep('Tracking', f)]) ) %>% 
   filter(STATUS == 'SAMPLED') %>% 
   mutate(ECO.SITE = if_else(ECO.SITE.MATCHED == F, 'UNKNOWN', ECO.SITE)) %>% 
   select(PLOTID = PLOT.ID, ECO.SITE)
 
-wghts <- read.csv( file.path(p, f[grep('Weights', f)])) %>% 
-  select(WghtPerPlot, STRATUM = Stratum, AoInference = Area)
+# Perform with WHETHER PLANT was ON PLOT (species richness)
+inv_plots <- inv_plots %>%  
+  mutate(Meeting = if_else(No_Invasive == 0, T, F)) 
+
+inv_plots <- read.csv( file.path(p, f[grep('Interence', f)])) %>% 
+  select(PLOTID = Plot.ID, AoInference) %>% 
+  right_join(., inv_plots) %>% 
+  mutate(STRATUM = str_remove(str_extract(PLOTID, '^.*-'), '-')) %>% 
+  left_join(., wghts, by = c('STRATUM','AoInference')) %>% 
+  left_join(., esd_class, by = 'PLOTID') %>% 
+  select(-ECO.SITE.y, ECO.SITE = ECO.SITE.x) %>% 
+  st_as_sf()
+
+noxious_presence_analysis <- cat_analysis(
+  dframe = inv_plots, siteID = 'PLOTID', vars = 'Meeting',
+  subpops = 'AoInference',  weight = 'WghtPerPlot', vartype = 'Local', conf = 80)
+
+# Perform with WHETHER PLANT was ON LPI line 
+meeting <- lpi_sum %>% 
+  mutate(Meeting = if_else(Proportion_Invasive  == 0, T, F)) %>% 
+  select(PLOTID, Meeting, Proportion_Invasive)
 
 meeting <- read.csv( file.path(p, f[grep('Interence', f)])) %>% 
   select(PLOTID = Plot.ID, AoInference) %>% 
@@ -385,7 +410,7 @@ A caveat with detecting invasive species is that, in the study area, most of the
   \caption{Uncommon Invasives in the Northern Field Office}
 \end{wrapfigure}
 
-A handful of the invasive species detected (Whitetops (*Cardaria chalepensis*, *Cardaria draba*, alternatively *Lepidum draba*), Canada thistle (*Cirsium arvense*), field bindweed (*Convolvulus arvensis*),  Timothy (*Phleum pratense*)), especially in the Northern Portion of the field office are generally associated with slightly more mesic conditions than occur at most BLM land, especially adjacent to irrigated pastures. Unless these populations are entrenched near streams, their spread is likely curtailed by the general aridity of BLM land, but their successful extirpation, in the face of continual re-colonization from adjacent pasture lands, or if they have invaded wetlands, is unlikely. Baby's Breath (*Gypsophila elegans*) may have been introduced for roadside plantings, and is worth eradication efforts (@pringle1993fna). *Cynoglossum officinale* is generally limited to higher elevation forested areas, and in the absence of forest fire it's spread may be slow on the portions of BLM land which it inhabits. A couple of these (Prairie Pepperweed (*Lepidium densiflorum*), prostrate knotweed (*Polygonum aviculare*)) are generally associated with heavily compacted soils, and tend to not spread aggressively outside of these areas. 
+A handful of the invasive species detected (Whitetops (*Cardaria chalepensis*, *Cardaria draba*, alternatively *Lepidum draba*), Canada thistle (*Cirsium arvense*), field bindweed (*Convolvulus arvensis*),  Timothy (*Phleum pratense*)), especially in the Northern Portion of the field office are generally associated with slightly more mesic conditions than occur at most BLM land, especially adjacent to irrigated pastures. Unless these populations are entrenched near streams, their spread is likely curtailed by the general aridity of BLM land, but their successful extirpation, in the face of continual re-colonization from adjacent pasture lands, or if they have invaded wetlands, is unlikely. Baby's Breath (*Gypsophila elegans*) may have been introduced for roadside plantings, and is worth eradication efforts (@pringle1993fna). Houndstongue *Cynoglossum officinale* is generally limited to higher elevation forested areas, and in the absence of forest fire it's spread may be slow on the portions of BLM land which it inhabits. A couple of these (Prairie Pepperweed (*Lepidium densiflorum*), prostrate knotweed (*Polygonum aviculare*)) are generally associated with heavily compacted soils, and tend to not spread aggressively outside of these areas. 
 
 
 ```{r Prepare figures of amount of field office meeting objectives}
@@ -420,18 +445,20 @@ waf_values = c('Low' = '#1FE032', 'High' = '#E0321F', 'CI_Low' = '#808929',
 ggplot(waff_dat, aes(fill = Statistic, values = Value)) +
   geom_waffle(color = "white", size = .25, flip = TRUE) +
   facet_wrap(~ Subpopulation) +
-  scale_fill_manual('Condition:', values = waf_values) +
+  scale_fill_manual('Condition', values = waf_values, 
+                    labels = c('Meeting', 'Conf. Int.', "Estimate", 'Conf. Int.', 'Failing')) +
   scale_x_discrete()  +
   scale_y_continuous(labels = function(x)round(x * 10, -1), expand = c(0,0))  +
   
   theme(
-    legend.position="bottom",
+    legend.position="left",
     aspect.ratio = 1,
+    legend.key.size = unit(0.7, 'lines'),
+    legend.title = element_text(hjust = 0.5, size = 10), 
     plot.title = element_text(hjust = 0.5, size = 11, face = 'bold'),
     panel.spacing = unit(0.01, "lines"), 
     strip.background =element_rect(fill="white"), 
     panel.background = element_blank())
-
 
 waff_dat %>% group_by(Subpopulation) %>% mutate(t = sum(Value))
 
