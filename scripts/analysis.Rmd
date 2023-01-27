@@ -35,6 +35,8 @@ Most land managers in the Western cold deserts (The Colorado Plateau, Great Basi
 library(sf)
 library(spsurvey)
 library(tidyverse)
+library(waffle)
+library(hrbrthemes)
 #install.packages('FSA')
 
 source('functions.R')
@@ -386,7 +388,57 @@ A caveat with detecting invasive species is that, in the study area, most of the
 A handful of the invasive species detected (Whitetops (*Cardaria chalepensis*, *Cardaria draba*, alternatively *Lepidum draba*), Canada thistle (*Cirsium arvense*), field bindweed (*Convolvulus arvensis*),  Timothy (*Phleum pratense*)), especially in the Northern Portion of the field office are generally associated with slightly more mesic conditions than occur at most BLM land, especially adjacent to irrigated pastures. Unless these populations are entrenched near streams, their spread is likely curtailed by the general aridity of BLM land, but their successful extirpation, in the face of continual re-colonization from adjacent pasture lands, or if they have invaded wetlands, is unlikely. Baby's Breath (*Gypsophila elegans*) may have been introduced for roadside plantings, and is worth eradication efforts (@pringle1993fna). *Cynoglossum officinale* is generally limited to higher elevation forested areas, and in the absence of forest fire it's spread may be slow on the portions of BLM land which it inhabits. A couple of these (Prairie Pepperweed (*Lepidium densiflorum*), prostrate knotweed (*Polygonum aviculare*)) are generally associated with heavily compacted soils, and tend to not spread aggressively outside of these areas. 
 
 
-A wide range of invasive species were present throughout the field office in a variety of habitats, and at varying abundances. 
+```{r Prepare figures of amount of field office meeting objectives}
+
+waff_dat <- noxious_cover_analysis %>% 
+  filter(Category == T) %>% 
+  mutate(
+    across(where(is.numeric), ~ round(.x, 0)),
+    Low = if_else(LCB80Pct.P == 0, 0, LCB80Pct.P - 1),
+    CI_Low = Estimate.P - LCB80Pct.P,
+    Estimate = 1,
+    CI_High = UCB80Pct.P - Estimate.P,
+    High = if_else(UCB80Pct.P == 0, 0, 100 - UCB80Pct.P)
+  ) %>% 
+  rowwise(Subpopulation) %>% 
+  mutate(High = if_else(sum(c_across(Low:High)) > 100, High -1, High),
+         High = if_else(sum(c_across(Low:High)) < 100, High + 1, High))  %>% 
+  select(Subpopulation, Low:High) %>% 
+  pivot_longer(!Subpopulation, names_to = 'Statistic', values_to = 'Value') %>% 
+  group_by(Subpopulation) %>% 
+  mutate(
+    Statistic = factor(Statistic,
+                       levels = c('Low', 'CI_Low', 'Estimate', 'CI_High', 'High')), 
+    Subpopulation = factor(Subpopulation,
+                       levels = c('ACEC-WSA', 'DE-NM', 'GG-NM', 'SampleFrame')))
+
+waff_dat <- data.table::setorder(waff_dat, Statistic)
+waf_values = c('Low' = '#1FE032', 'High' = '#E0321F', 'CI_Low' = '#808929', 
+               'Estimate' = 'black', 'CI_High' = '#808929')
+
+
+ggplot(waff_dat, aes(fill = Statistic, values = Value)) +
+  geom_waffle(color = "white", size = .25, flip = TRUE) +
+  facet_wrap(~ Subpopulation) +
+  scale_fill_manual('Condition:', values = waf_values) +
+  scale_x_discrete()  +
+  scale_y_continuous(labels = function(x)round(x * 10, -1), expand = c(0,0))  +
+  
+  theme(
+    legend.position="bottom",
+    aspect.ratio = 1,
+    plot.title = element_text(hjust = 0.5, size = 11, face = 'bold'),
+    panel.spacing = unit(0.01, "lines"), 
+    strip.background =element_rect(fill="white"), 
+    panel.background = element_blank())
+
+
+waff_dat %>% group_by(Subpopulation) %>% mutate(t = sum(Value))
+
+```
+
+A wide range of invasive species were present throughout the field office in a variety of habitats, and at varying abundances (Figure XX). All four areas of analysis within the field office, the ACEC's - WSA's, and the Dominguez-Escalente and Gunnison Gorge National Monuments failed to meet management objectives for being in reference condition (80% of the first three, and 70% of the remaining land) (Figure XX, panel 1). 
+They further all failed objectives if invasives were reduced to only presences on LPI positions (Figure XX, panel 2). 
 
 ```{r}
 rm(most_common_inv, inv_r_t, inv_richness, lpi_sum, invasive_sum)
