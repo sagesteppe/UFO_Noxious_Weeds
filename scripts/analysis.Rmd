@@ -359,7 +359,7 @@ rm(r_locations_ne, r_locations)
 ```
 
 
-\begin{wrapfigure}{l}{0.6\textwidth}
+\begin{wrapfigure}{r}{0.6\textwidth}
   \centering
     \includegraphics[width=0.6\textwidth]{../results/maps/allFO_weeds.png}
   \caption{Distribution of Invasive Species Across the Field Office}
@@ -380,7 +380,7 @@ There were `r nrow(unique(invasive_sum[invasive_sum$Invasive == T,'SYMBOL'] ))` 
 A caveat with detecting invasive species is that, in the study area, most of them are annuals (##/##). Given the exceptional drought conditions (SECTION XX) under which field work was conducted, it is quite likely that the estimated covers of them by plot are notably lower than are during more normal conditions (@mack1984demography, @bowers1987precipitation). While it seems that their presence at plots is unlikely to be altered, their abundances were likely understimated in most years of sampling (cite). 
 
 
-\begin{wrapfigure}{l}{0.6\textwidth}
+\begin{wrapfigure}{r}{0.6\textwidth}
   \centering
     \includegraphics[width=0.6\textwidth]{../results/maps/NothernFO_weeds.png}
   \caption{Uncommon Invasives in the Northern Field Office}
