@@ -93,7 +93,7 @@ invasive_species %>%
 invasive_species <- bind_rows(aim_synonyms, invasive_species)
 
 write.csv(invasive_species, row.names = F, 
-          file.path('..', 'data', 'processed', 'Introducted_species_CO.csv'))
+          file.path('..', 'data', 'processed', 'Introduced_species_CO.csv'))
 
 rm(attributes, invasive_species)
 ```
@@ -109,7 +109,7 @@ plot_char <- read.csv( file.path(p, f[grep('Characterization', f)]) ) %>%
   drop_na() 
 
 invasive_species <- read.csv(
-  file.path('..', 'data', 'processed', 'Introducted_species_CO.csv') ) %>% 
+  file.path('..', 'data', 'processed', 'Introduced_species_CO.csv') ) %>% 
   select(National_USDASymbol:Invasive)
 
 spp_alpha <- read.csv( file.path(p, f[grep('Richness.csv$', f)])) %>% 
@@ -123,7 +123,7 @@ pts <- st_read(
                 quiet = T) %>% 
   st_transform(26913) %>% 
   st_buffer(55) %>% 
-  select(PLOTID, STRATUM)
+  select(PLOTID, STRATUM) 
 
 spp_alpha <- spp_alpha %>% 
   st_transform(26913)
@@ -151,9 +151,9 @@ lpi <- read.csv( file.path(p, f[grep('LPIRAW', f)]) ) %>%
   mutate(across(.cols = everything(), ~ na_if(.x, ""))) %>% 
   unite(col = 'All_species',  TopCanopy:SoilSurface,  sep = " ", na.rm = T, remove = F) 
 
-Invasive <- lapply(lpi$All_species, inv_present, invasive_species$National_USDASymbol)
-Invasive <- unlist(Invasive)
-lpi <- bind_cols(lpi, Invasive = Invasive)
+Invasive <- lapply(lpi$All_species, inv_present, invasive_species$National_USDASymbol) 
+Invasive <- unlist(Invasive) 
+lpi <- bind_cols(lpi, Invasive = Invasive) 
 
 # percent cover of all plants
 lpi_sum <- lpi %>% 
