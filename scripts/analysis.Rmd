@@ -321,7 +321,7 @@ noxious_cover_analysis <- cat_analysis(
   dframe = meeting, siteID = 'PLOTID', vars = 'Meeting',
   subpops = 'AoInference',  weight = 'WghtPerPlot', vartype = 'Local', conf = 80)
 
-rm(wghts, esd_class, warn_df, inv_carto, f, p, inv_plots)
+rm(wghts, esd_class, warn_df, inv_carto, f, p)
 ```
 
 ```{r Do Certain Ecosites appear less resistant to invasion}
@@ -462,7 +462,7 @@ most_common_inv <-  sort(
 nox_Pres <- filter(noxious_presence_analysis, Category %in% c(T, 'Total'))
 nox_Cov <- filter(noxious_cover_analysis, Category %in% c(T, 'Total'))
 
-rm(r_locations_ne, r_locations, noxious_presence_analysis, noxious_cover_analysis)
+rm(r_locations_ne, r_locations, noxious_cover_analysis)
 ```
 
 
@@ -509,15 +509,27 @@ A wide range of invasive species were present throughout the field office in a v
 They further all failed objectives if invasive species presences were reduced to only occurrences on LPI positions (Figure XX, panel 2). 
 
 ```{r}
-mpx
-nox_Pres$Category==T
-
 rm(most_common_inv, inv_r_t, inv_richness, lpi_sum, invasive_sum)
 ```
 
 
+```{r write out results of whether meeting benchmarks or not, eval = F}
 
-\newpage
+inv_plots %>% 
+  st_drop_geometry() %>% 
+  mutate(CATEGORY = NA) %>% 
+  select(PLOTID, AoInference, Meeting, CATEGORY, ECO.SITE) %>% 
+  mutate(INDICATOR = 'INVASIVE SPECIES', .before = CATEGORY) %>% 
+  rename_with(toupper) %>% 
+  mutate(across(.cols = everything(), toupper)) %>% 
+  write.csv(., row.names = F, 
+          '../data/processed/noxios_weeds_meeting_benchmarks.csv')
 
+rm(inv_plots)
+
+```
+
+
+\newpag
 # References
 
