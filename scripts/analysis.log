@@ -1,11 +1,11 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2023.1.27)  27 JAN 2023 14:46
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2023.2.13)  13 FEB 2023 16:30
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
 **analysis.tex
 (./analysis.tex
 LaTeX2e <2022-11-01> patch level 1
-L3 programming layer <2023-01-24> (/home/sagesteppe/.TinyTeX/texmf-dist/tex/latex/base/article.cls
+L3 programming layer <2023-02-07> (/home/sagesteppe/.TinyTeX/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2022/07/02 v1.4n Standard LaTeX document class
 (/home/sagesteppe/.TinyTeX/texmf-dist/tex/latex/base/size10.clo
 File: size10.clo 2022/07/02 v1.4n Standard LaTeX file (size option)
@@ -231,7 +231,7 @@ Package caption Info: Standard document class detected.
 \WF@everypar=\toks25
 Package: wrapfig 2003/01/31  v 3.6
 ) (/home/sagesteppe/.TinyTeX/texmf-dist/tex/latex/hyperref/hyperref.sty
-Package: hyperref 2022-11-13 v7.00u Hypertext links for LaTeX
+Package: hyperref 2023-02-07 v7.00v Hypertext links for LaTeX
 (/home/sagesteppe/.TinyTeX/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty
 Package: ltxcmds 2020-05-10 v1.25 LaTeX kernel commands for general use (HO)
 ) (/home/sagesteppe/.TinyTeX/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty
@@ -269,7 +269,7 @@ Package: kvoptions 2022-06-15 v3.15 Key value format for package options (HO)
 \Hy@linkcounter=\count281
 \Hy@pagecounter=\count282
 (/home/sagesteppe/.TinyTeX/texmf-dist/tex/latex/hyperref/pd1enc.def
-File: pd1enc.def 2022-11-13 v7.00u Hyperref: PDFDocEncoding definition (HO)
+File: pd1enc.def 2023-02-07 v7.00v Hyperref: PDFDocEncoding definition (HO)
 Now handling font encoding PD1 ...
 ... no UTF-8 mapping file for font encoding PD1
 ) (/home/sagesteppe/.TinyTeX/texmf-dist/tex/generic/intcalc/intcalc.sty
@@ -279,24 +279,24 @@ Package: etexcmds 2019/12/15 v1.7 Avoid name clashes with e-TeX commands (HO)
 )
 \Hy@SavedSpaceFactor=\count283
 (/home/sagesteppe/.TinyTeX/texmf-dist/tex/latex/hyperref/puenc.def
-File: puenc.def 2022-11-13 v7.00u Hyperref: PDF Unicode definition (HO)
+File: puenc.def 2023-02-07 v7.00v Hyperref: PDF Unicode definition (HO)
 Now handling font encoding PU ...
 ... no UTF-8 mapping file for font encoding PU
 )
-Package hyperref Info: Option `unicode' set `true' on input line 4045.
-Package hyperref Info: Hyper figures OFF on input line 4162.
-Package hyperref Info: Link nesting OFF on input line 4167.
-Package hyperref Info: Hyper index ON on input line 4170.
-Package hyperref Info: Plain pages OFF on input line 4177.
-Package hyperref Info: Backreferencing OFF on input line 4182.
+Package hyperref Info: Option `unicode' set `true' on input line 4060.
+Package hyperref Info: Hyper figures OFF on input line 4177.
+Package hyperref Info: Link nesting OFF on input line 4182.
+Package hyperref Info: Hyper index ON on input line 4185.
+Package hyperref Info: Plain pages OFF on input line 4192.
+Package hyperref Info: Backreferencing OFF on input line 4197.
 Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
-Package hyperref Info: Bookmarks ON on input line 4410.
+Package hyperref Info: Bookmarks ON on input line 4425.
 \c@Hy@tempcnt=\count284
 (/home/sagesteppe/.TinyTeX/texmf-dist/tex/latex/url/url.sty
 \Urlmuskip=\muskip17
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 )
-LaTeX Info: Redefining \url on input line 4748.
+LaTeX Info: Redefining \url on input line 4763.
 \XeTeXLinkMargin=\dimen173
 (/home/sagesteppe/.TinyTeX/texmf-dist/tex/generic/bitset/bitset.sty
 Package: bitset 2019/12/09 v1.3 Handle bit-vector datatype (HO)
@@ -306,13 +306,13 @@ Package: bigintcalc 2019/12/15 v1.5 Expandable calculations on big integers (HO)
 \Fld@menulength=\count285
 \Field@Width=\dimen174
 \Fld@charsize=\dimen175
-Package hyperref Info: Hyper figures OFF on input line 6027.
-Package hyperref Info: Link nesting OFF on input line 6032.
-Package hyperref Info: Hyper index ON on input line 6035.
-Package hyperref Info: backreferencing OFF on input line 6042.
-Package hyperref Info: Link coloring OFF on input line 6047.
-Package hyperref Info: Link coloring with OCG OFF on input line 6052.
-Package hyperref Info: PDF/A mode OFF on input line 6057.
+Package hyperref Info: Hyper figures OFF on input line 6042.
+Package hyperref Info: Link nesting OFF on input line 6047.
+Package hyperref Info: Hyper index ON on input line 6050.
+Package hyperref Info: backreferencing OFF on input line 6057.
+Package hyperref Info: Link coloring OFF on input line 6062.
+Package hyperref Info: Link coloring with OCG OFF on input line 6067.
+Package hyperref Info: PDF/A mode OFF on input line 6072.
 (/home/sagesteppe/.TinyTeX/texmf-dist/tex/latex/base/atbegshi-ltx.sty
 Package: atbegshi-ltx 2021/01/10 v1.0c Emulation of the original atbegshi
 package with kernel methods
@@ -323,7 +323,7 @@ package with kernel methods
 )
 Package hyperref Info: Driver (autodetected): hpdftex.
 (/home/sagesteppe/.TinyTeX/texmf-dist/tex/latex/hyperref/hpdftex.def
-File: hpdftex.def 2022-11-13 v7.00u Hyperref driver for pdfTeX
+File: hpdftex.def 2023-02-07 v7.00v Hyperref driver for pdfTeX
 (/home/sagesteppe/.TinyTeX/texmf-dist/tex/latex/base/atveryend-ltx.sty
 Package: atveryend-ltx 2020/08/19 v1.0a Emulation of the original atveryend package
 with kernel methods
@@ -444,11 +444,11 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) [1
 
 {/home/sagesteppe/.TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-<../results/figures/invasive_index.png, id=74, 505.89pt x 216.81pt>
+<../results/figures/invasive_index.png, id=74, 357.0138pt x 252.945pt>
 File: ../results/figures/invasive_index.png Graphic file (type png)
 <use ../results/figures/invasive_index.png>
 Package pdftex.def Info: ../results/figures/invasive_index.png  used on input line 213.
-(pdftex.def)             Requested size: 187.90196pt x 80.5294pt.
+(pdftex.def)             Requested size: 234.8835pt x 166.41544pt.
 LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 217.
 (/home/sagesteppe/.TinyTeX/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -462,53 +462,53 @@ Package wrapfig Warning: Stationary wrapfigure forced to float on input line 221
 
 Package wrapfig Warning: Stationary wrapfigure forced to float on input line 221.
 
-<../results/maps/allFO_weeds.png, id=81, 314.8563pt x 231.9867pt>
+[2 <../results/figures/invasive_index.png>]
+<../results/maps/allFO_weeds.png, id=96, 419.6478pt x 363.0363pt>
 File: ../results/maps/allFO_weeds.png Graphic file (type png)
 <use ../results/maps/allFO_weeds.png>
-Package pdftex.def Info: ../results/maps/allFO_weeds.png  used on input line 247.
-(pdftex.def)             Requested size: 234.8829pt x 173.06215pt.
-[2 <../results/figures/invasive_index.png> <../results/maps/allFO_weeds.png>]
-<../results/maps/invasive_index.png, id=100, 361.35pt x 263.3037pt>
+Package pdftex.def Info: ../results/maps/allFO_weeds.png  used on input line 249.
+(pdftex.def)             Requested size: 234.8795pt x 203.1937pt.
+<../results/maps/invasive_index.png, id=97, 357.9774pt x 263.3037pt>
 File: ../results/maps/invasive_index.png Graphic file (type png)
 <use ../results/maps/invasive_index.png>
-Package pdftex.def Info: ../results/maps/invasive_index.png  used on input line 279.
-(pdftex.def)             Requested size: 281.85738pt x 205.38007pt.
-<../results/maps/NothernFO_weeds.png, id=103, 419.6478pt x 193.6836pt>
+Package pdftex.def Info: ../results/maps/invasive_index.png  used on input line 281.
+(pdftex.def)             Requested size: 281.85953pt x 207.31659pt.
+[3 <../results/maps/allFO_weeds.png> <../results/maps/invasive_index.png>]
+<../results/maps/NothernFO_weeds.png, id=111, 419.6478pt x 193.6836pt>
 File: ../results/maps/NothernFO_weeds.png Graphic file (type png)
 <use ../results/maps/NothernFO_weeds.png>
-Package pdftex.def Info: ../results/maps/NothernFO_weeds.png  used on input line 314.
+Package pdftex.def Info: ../results/maps/NothernFO_weeds.png  used on input line 316.
 (pdftex.def)             Requested size: 234.8795pt x 108.4059pt.
-[3 <../results/maps/invasive_index.png> <../results/maps/NothernFO_weeds.png>]
-<../results/figures/waffles.png, id=116, 158.5122pt x 289.08pt>
+<../results/figures/waffles.png, id=113, 158.994pt x 289.08pt>
 File: ../results/figures/waffles.png Graphic file (type png)
 <use ../results/figures/waffles.png>
-Package pdftex.def Info: ../results/figures/waffles.png  used on input line 342.
-(pdftex.def)             Requested size: 158.51906pt x 289.09251pt.
-[4 <../results/figures/waffles.png>]
-Underfull \hbox (badness 2293) in paragraph at lines 379--384
+Package pdftex.def Info: ../results/figures/waffles.png  used on input line 344.
+(pdftex.def)             Requested size: 159.00087pt x 289.09251pt.
+[4 <../results/maps/NothernFO_weeds.png> <../results/figures/waffles.png>]
+Underfull \hbox (badness 2293) in paragraph at lines 386--391
 []\T1/lmr/m/n/10 Crystal-Ornelas, R., Hud-gins, E. J., Cuth-bert, R. N.,
  []
 
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 397.
+(Font)              <10> on input line 404.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 397.
+(Font)              <7> on input line 404.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 397.
+(Font)              <5> on input line 404.
 [5] [6] (./analysis.aux)
 Package rerunfilecheck Info: File `analysis.out' has not changed.
 (rerunfilecheck)             Checksum: E3D6E9447C5171282D53BA24EF85ADE4;252.
  ) 
 Here is how much of TeX's memory you used:
- 12030 strings out of 478025
- 192921 string characters out of 5839811
- 1866305 words of memory out of 5000000
- 31949 multiletter control sequences out of 15000+600000
+ 12034 strings out of 477989
+ 193112 string characters out of 5838955
+ 1866346 words of memory out of 5000000
+ 31989 multiletter control sequences out of 15000+600000
  562154 words of font info for 72 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  75i,6n,76p,313b,476s stack positions out of 10000i,1000n,20000p,200000b,200000s
 {/home/sagesteppe/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}</home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx9.pfb></home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr17.pfb></home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr9.pfb></home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmri10.pfb></home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
-Output written on analysis.pdf (6 pages, 2483508 bytes).
+Output written on analysis.pdf (6 pages, 2624523 bytes).
 PDF statistics:
  187 PDF objects out of 1000 (max. 8388607)
  153 compressed objects within 2 object streams
