@@ -23,11 +23,11 @@ knitr::opts_chunk$set(fig.align="left")
 
 \vspace{-1cm}
 
-One of the first acts in the life of a plant, as a seed, is to move. Generally seeds travel only short distances, but less common long distance movements are known to occur naturally (Section X.X), and long distance movement occurs regularly via humans. The long distance movement of seeds by humans, in recent history *i.e.* the last couple thousand years, may result in the seed germinating and the population (if any) which results from it surviving for only a few generations (*waif*) (@nesom2000non). A seed may also produce a population which is able to persist for many generations in the new ecosystem, and even disperse and spread out across their new landscape (*naturalized*); many of these species are readily incorporated into the existing vegetation and do little to alter it (@nesom2000non, @pyvsek2010invasive). A subset of these species which are able to naturalize may displace considerable amounts of the plant species already in the landscape, and in so doing alters the composition of species at ecological sites (*noxious*), hence also the functioning of these sites (*invasive*) (@davies2011plant, @evans2001exotic, @pyvsek2012global, @noxious2023blm,  *and reviewed in* @ehrenfeld2010ecosystem, @pyvsek2010invasive).  That a few species can alter the properties of landscapes is at the core of the Ecological Sites. While all invasive plants are noxious, not all noxious plants are invasive, as can be seen from a number of native species which act as aggressive weeds in disturbed settings and which prevent natural succession.
+One of the first acts in the life of a plant, as a seed, is to move. Generally seeds travel only short distances, but less common long distance movements are known to occur naturally (Section X.X), and long distance movement occur regularly via humans. The long distance movement of seeds by humans, in recent history *i.e.* the last couple thousand years, may result in the seed germinating and the population (if any) which results from it surviving for only a few generations (*waif*) (@nesom2000non). A seed may also produce a population which is able to persist for many generations in the new ecosystem, and even disperse and spread out across their new landscape (*naturalized*); many of these species are readily incorporated into the existing vegetation and do little to alter it (@nesom2000non, @pyvsek2010invasive). A subset of these species which are able to naturalize may displace considerable amounts of the plant species already in the landscape, and in so doing alters the composition of species at ecological sites (*noxious*), hence also the functioning of these sites (*invasive*) (@davies2011plant, @evans2001exotic, @pyvsek2012global, @noxious2023blm,  *and reviewed in* @ehrenfeld2010ecosystem, @pyvsek2010invasive).  That a few species can alter the properties of landscapes is at the core of the Ecological Sites. While all invasive plants are noxious, not all noxious plants are invasive, as can be seen from a number of native species which act as aggressive weeds in disturbed settings and which prevent natural succession.
 
 Noxious and invasive species adversely affect nearly all ecosystem services offered by natural areas, increase fire frequency and intensity, and have enormous economic impacts (*reviwed in* @ehrenfeld2010ecosystem, @d1992biological, @duncan2004assessing, @fantle2022economic, @crystal2021economic). Invasive species at landscape scales have been shown to decrease plant species richness, taxonomic, functional and structural diversity leading to declines in habitat heterogeneity and adversely affecting wildlife (@keeley2012fire, @ehrenfeld2010ecosystem, @klinger2017alternative). They pose serious threats to the well being of both wildlife, livestock, and humans, via interactions with historic land management alterations, to the fire cycle (@d1992biological, @keeley2012fire, @). The economic impacts of invasive species include enormous amounts of funds being channeled into their treatment to reduce fuel loads (), treatments to curtail their spread into new areas (), and losses in economic activity e.g. by displacement of grasses more suitable as forage for livestock (). 
 
-Most land managers in the Western cold deserts (The Colorado Plateau, Great Basin, and Columbia Plateau) consider noxious annual grasses to pose the greatest challenge towards maintaining ecosystems which allow for multiple uses (@chambers2009cold). Of concern to our office is the increasing adpation of cheatgrass (*Bromus tectorum*), which is already present throughout the field office, towards higher elevation sites (@smith2022elevational). Based on the limited evidence currently available the effect of encroachment of invasive species is of more adverse affect than is attributable to climate change or drought, although synergistic interactions between invasive species and drought still occurr  (@clarke2005long, @lopez2022global). 
+Most land managers in the Western cold deserts (The Colorado Plateau, Great Basin, and Columbia Plateau) consider noxious annual grasses to pose the greatest challenge towards maintaining ecosystems which allow for multiple uses (@chambers2009cold). Of concern to our office is the increasing adpation of cheatgrass (*Bromus tectorum*), which is already present throughout the field office, towards higher elevation sites (@smith2022elevational). Based on the limited evidence currently available the encroachment of invasive species is of more adverse affect than may attributable to climate change or drought, although synergistic interactions between invasive species and drought still occurr  (@clarke2005long, @lopez2022global). 
 
 # Methods
 
@@ -39,6 +39,8 @@ library(waffle)
 library(hrbrthemes)
 #install.packages('FSA')
 hrbrthemes::import_roboto_condensed() 
+
+select <- dplyr::select
 
 source('functions.R')
 p <- file.path('..', 'data', 'raw')
@@ -71,7 +73,7 @@ attributes <- read.csv( file.path(p, f[grep('Attributes', f)])) %>%
   filter(Noxious == 'YES')
 
 invasive_species <- read.csv(file.path(p, f[grep('Values', f)])) %>% 
-  select(National_USDASymbol, National_SciName_noAuthority, Ack_SciName_noAuthority,  National_NativeStatus, 
+  dplyr::select(National_USDASymbol, National_SciName_noAuthority, Ack_SciName_noAuthority,  National_NativeStatus, 
          CONox_Status, Invasiveness, IRank, IRank_Score) %>% 
   mutate(across(.col = everything(), ~ na_if(., ''))) %>% 
   drop_na(National_USDASymbol) %>% 
@@ -105,7 +107,7 @@ Once this list was developed and underwent review, the cleaned AIM data maintain
 ```{r import species richness data and tie to plots}
 
 plot_char <- read.csv( file.path(p, f[grep('Characterization', f)]) ) %>% 
-  select(PrimaryKey, Easting, Northing) %>% 
+  dplyr::select(PrimaryKey, Easting, Northing) %>% 
   drop_na() 
 
 invasive_species <- read.csv(
@@ -113,7 +115,7 @@ invasive_species <- read.csv(
   select(National_USDASymbol:Invasive)
 
 spp_alpha <- read.csv( file.path(p, f[grep('Richness.csv$', f)])) %>% 
-  select(PrimaryKey, SpeciesList, abundance, distribution) %>% 
+  dplyr::select(PrimaryKey, SpeciesList, abundance, distribution) %>% 
   right_join(., plot_char, by = 'PrimaryKey') %>% 
   st_as_sf(coords = c('Easting', 'Northing'), crs = 4269) %>% 
   st_transform(26913)
@@ -123,7 +125,7 @@ pts <- st_read(
                 quiet = T) %>% 
   st_transform(26913) %>% 
   st_buffer(55) %>% 
-  select(PLOTID, STRATUM) 
+  dplyr::select(PLOTID, STRATUM) 
 
 spp_alpha <- spp_alpha %>% 
   st_transform(26913)
@@ -131,7 +133,7 @@ spp_alpha <- spp_alpha %>%
 esd_class <- read.csv( file.path(p, f[grep('Tracking', f)]) ) %>% 
   filter(STATUS == 'SAMPLED') %>% 
   mutate(ECO.SITE = if_else(ECO.SITE.MATCHED == F, 'UNKNOWN', ECO.SITE)) %>% 
-  select(PlotID = PLOT.ID, ECO.SITE)
+  dplyr::select(PlotID = PLOT.ID, ECO.SITE)
 
 spp_alpha <- st_intersection(pts, spp_alpha) %>% 
   left_join(., esd_class, by = c('PLOTID' = 'PlotID')) %>% 
@@ -144,7 +146,7 @@ rm(plot_char, pts, esd_class)
 ```{r import LPI data and tie to plots}
 
 lpi <- read.csv( file.path(p, f[grep('LPIRAW', f)]) ) %>% 
-  select(PrimaryKey, TopCanopy:SoilSurface) %>% 
+  dplyr::select(PrimaryKey, TopCanopy:SoilSurface) %>% 
   filter(PrimaryKey %in% spp_alpha$PrimaryKey) %>% 
   mutate(TopCanopy = na_if(TopCanopy, 'None'),
                TopCanopy = na_if(TopCanopy, 'N')) %>% 
@@ -162,16 +164,16 @@ lpi_sum <- lpi %>%
             Invasive_Intercepts = sum(Invasive))
 
 # join up
-lpi_sum <- left_join(lpi_sum, select(spp_alpha, PLOTID, PrimaryKey) %>% 
+lpi_sum <- left_join(lpi_sum, dplyr::select(spp_alpha, PLOTID, PrimaryKey) %>% 
                        distinct(), by = 'PrimaryKey') %>% 
-  select(-PrimaryKey) %>% 
+  dplyr::select(-PrimaryKey) %>% 
   mutate(Proportion_Invasive = Invasive_Intercepts/Vascular_Intercepts) %>% 
   st_as_sf()
 
 # Cover of individual invasive species by plots
 
 lpi2 <- lpi %>% 
-  select(PrimaryKey:Lower4, -All_species) %>% 
+  dplyr::select(PrimaryKey:Lower4, -All_species) %>% 
   pivot_longer(!PrimaryKey, values_to = 'SYMBOL')  %>% 
   filter(!SYMBOL %in% c('L', 'WL', 'HL')) %>% 
   drop_na(SYMBOL) %>% 
@@ -182,10 +184,10 @@ lpi2 <- lpi %>%
 
 # something wrong, i have duplicates on 
 
-invasive_sum <- left_join(lpi2, select(spp_alpha, PLOTID, PrimaryKey) %>% 
+invasive_sum <- left_join(lpi2, dplyr::select(spp_alpha, PLOTID, PrimaryKey) %>% 
                        distinct(), by = 'PrimaryKey') %>% 
-  select(-PrimaryKey, -geometry) %>% 
-  left_join(., select( invasive_species, National_USDASymbol, Invasive), 
+  dplyr::select(-PrimaryKey, -geometry) %>% 
+  left_join(., dplyr::select( invasive_species, National_USDASymbol, Invasive), 
             by = c('SYMBOL' ='National_USDASymbol'))
 
 rm(Invasive, inv_present, lpi2)
@@ -202,7 +204,7 @@ inv <- spp_alpha %>%
          No_Introduced = sum(INTRO_CNT)) %>% 
   mutate(INVAS_CNT = if_else(Invasive == T, 1, 0 ),
          No_Invasive = sum(INVAS_CNT, na.rm =T)) %>% 
-  select(-INVAS_CNT, -INTRO_CNT) %>% 
+  dplyr::select(-INVAS_CNT, -INTRO_CNT) %>% 
   ungroup(PLOTID)
 
 inv_richness <- inv %>% 
@@ -210,7 +212,7 @@ inv_richness <- inv %>%
   mutate(Prop_Int = No_Introduced/No_Spp,
            Prop_Inv = No_Invasive/No_Spp)
 
-inv_plots <- select(inv, PLOTID, ECO.SITE, No_Spp, No_Introduced, No_Invasive)  %>% 
+inv_plots <- dplyr::select(inv, PLOTID, ECO.SITE, No_Spp, No_Introduced, No_Invasive)  %>% 
   group_by(PLOTID) %>% 
   slice_max(No_Invasive, n = 1, with_ties = F)
 
@@ -409,7 +411,7 @@ waff_dat <- waff_dat %>%
   rowwise(Subpopulation) %>% 
   mutate(High = if_else(sum(c_across(Low:High)) > 100, High -1, High),
          High = if_else(sum(c_across(Low:High)) < 100, High + 1, High))  %>% 
-  select(Subpopulation, Method,  Low:High) %>% 
+  dplyr::select(Subpopulation, Method,  Low:High) %>% 
   pivot_longer(cols = Low:High, names_to = 'Statistic', values_to = 'Value') %>% 
   group_by(Subpopulation) %>% 
   mutate(
@@ -445,7 +447,8 @@ w <- ggplot(waff_dat, aes(fill = Statistic, values = Value)) +
     panel.spacing = unit(0.4, "lines"), 
     strip.background =element_rect(fill="white"), 
     panel.background = element_blank()) +
-  guides(fill=guide_legend(ncol=2))
+  guides(fill=guide_legend(ncol=2)) +
+  labs(title = 'Land Meeting Benchmarks')
 
 ggsave(w, path = '../results/figures', device = 'png', bg = 'transparent',
        filename = 'waffles.png', dpi = 300, height = 4, units = "in")
@@ -474,27 +477,17 @@ nox_Cov <- filter(noxious_cover_analysis, Category %in% c(T, 'Total'))
 rm(r_locations_ne, r_locations, noxious_cover_analysis)
 ```
 
-
-\begin{wrapfigure}{r}{0.5\textwidth}
+\begin{wrapfigure}{r}{0.6\textwidth}
   \centering
-    \includegraphics[width=0.5\textwidth]{../results/maps/allFO_weeds.png}
-  \caption{Distribution of Invasive Species Across the Field Office}
+    \includegraphics[width=0.6\textwidth]{../results/maps/invasive_index.png}
+  \caption{Invasive Index across the Field Office}
 \end{wrapfigure}
 
 `r length(unique(inv_richness$SpeciesList))` introduced, and of these `r length(unique(inv_r_t$SpeciesList))` invasive species were detected across all `r sum(nca[nca$Category == 'Total',  'nResp'])` plots. `r length(unique(inv_r_t$PLOTID))` plots had invasive species on them, and `r group_by(inv_r_t, PLOTID) |> filter(n() >=2) |> distinct(PLOTID) |> nrow()` plots had more than one invasive species. When reducing these to species of immediate management concern `r` species were present at `r` plots (REVIEW THE LIST AND THIN IT). As expected, the species which occurred the most often were `r toString(names(most_common_inv))` at `r toString(as.numeric(most_common_inv))` of all plots respectively. Most of the species were present across the entirety of the field office, except for ca. a dozen species which were isolated to localities between Delta and Paonia (Figure XX). Several of these species generally occur in wetter, higher elevation, habitats than most terrestrial BLM Land and their spread to BLM is minimal; however a number of the populations are adjacent to USFS land (Figure XX). 
 
 A component of reference condition for all Ecological Sites is that invasive species are not present. By this metric the plots which would be meeting their benchmarks is quite low (`r length(unique(inv_r_t$PLOTID))`), however we feel another consideration is whether an invasive species was detected on the Line-Point Intercepts (Section XX). As reference condition benchmarks still have considerable association with pre-Columbian times ecology, and much has changed in the interim, we believe each of these plots deserves another more liberal consideration. Of the plots which had invasive species, they were detected via line-point intercept at `r  nrow(lpi_sum[lpi_sum$Proportion_Invasive>0,])` of them.  
 
-\begin{wrapfigure}{l}{0.6\textwidth}
-  \centering
-    \includegraphics[width=0.6\textwidth]{../results/maps/invasive_index.png}
-  \caption{Invasive Index across the Field Office}
-\end{wrapfigure}
-
-There were `r nrow(unique(invasive_sum[invasive_sum$Invasive == T,'SYMBOL'] ))` species which were detected on LPI lines at `r nrow(lpi_sum[lpi_sum$Proportion_Invasive>0,])` plots, and of these species `r` were of immediate management concern.  The proportion of all vegetation cover which was invasive at plots varied from `r min(lpi_sum$Proportion_Invasive)`% to `r max(lpi_sum$Proportion_Invasive) * 100`% (Mdn = `r round(median(lpi_sum$Proportion_Invasive) * 100, 2)`, mean = `r round(mean(lpi_sum$Proportion_Invasive) * 100,2)`). In general, the few plots with exceptionally high cover of invasive species were small parcels of BLM land adjacent to roads, and private lands, in low elevation areas near Delta (figure XX). 
-
-A caveat with detecting invasive species is that, in the study area, most of them are annuals (##/##). Given the exceptional drought conditions (SECTION XX) under which field work was conducted, it is quite likely that the estimated covers of them by plot are notably lower than are during more normal conditions (@mack1984demography, @bowers1987precipitation). While it seems that their presence at plots is unlikely to be altered, their abundances were likely underestimated in most years of sampling (cite). The relationships between the proportion of introduced species as a function of all species at a plot, the proportion of invasive species (a subset of introduced species), and the proportion of invasive species cover at a plot were highly correlated, and they were combined into a single metric, 'Invasibility Index' (Figure 1). We suspect that this index is more indicative of the status of a plot in a year with more normal precipitation, as can be seen in Figure 1, the data from the time period generally has a large cluster of invasive cover in the lower left of the plot from (0 - 0.25 on the index axis, beneath the line), which is less representative of the potential for invasive cover to expand rapidly under normal conditions. 
-
+There were `r nrow(unique(invasive_sum[invasive_sum$Invasive == T,'SYMBOL'] ))` species which were detected on LPI lines at `r nrow(lpi_sum[lpi_sum$Proportion_Invasive>0,])` plots, and of these species `r` were of immediate management concern.  The proportion of all vegetation cover which was invasive at plots varied from `r min(lpi_sum$Proportion_Invasive)`% to `r max(lpi_sum$Proportion_Invasive) * 100`% (Mdn = `r round(median(lpi_sum$Proportion_Invasive) * 100, 2)`, mean = `r round(mean(lpi_sum$Proportion_Invasive) * 100,2)`). In general, the few plots with exceptionally high cover of invasive species were small parcels of BLM land adjacent to roads, and private lands, in low elevation areas near Delta (figure 2). 
 
 \begin{wrapfigure}{r}{0.5\textwidth}
   \centering
@@ -502,8 +495,7 @@ A caveat with detecting invasive species is that, in the study area, most of the
   \caption{Uncommon Invasives in the Northern Field Office}
 \end{wrapfigure}
 
-A handful of the invasive species detected (Whitetops (*Cardaria chalepensis*, *Cardaria draba*, alternatively *Lepidum draba*), Canada thistle (*Cirsium arvense*), field bindweed (*Convolvulus arvensis*),  Timothy (*Phleum pratense*)), especially in the Northern Portion of the field office are generally associated with slightly more mesic conditions than occur at most BLM land, especially adjacent to irrigated pastures. Unless these populations are entrenched near streams, their spread is likely curtailed by the general aridity of BLM land, but their successful extirpation, in the face of continual re-colonization from adjacent pasture lands, or if they have invaded wetlands, is unlikely. Baby's Breath (*Gypsophila elegans*) may have been introduced for roadside plantings, and is worth eradication efforts (@pringle1993fna). Houndstongue *Cynoglossum officinale* is generally limited to higher elevation forested areas, and in the absence of forest fire it's spread may be slow on the portions of BLM land which it inhabits. A couple of these (Prairie Pepperweed (*Lepidium densiflorum*), prostrate knotweed (*Polygonum aviculare*)) are generally associated with heavily compacted soils, and tend to not spread aggressively outside of these areas. 
-
+A caveat with detecting invasive species is that, in the study area, most of them are annuals (##/##). Given the exceptional drought conditions **(SECTION XX)** under which field work was conducted, it is quite likely that the estimated covers of them by plot are notably lower than are during more normal conditions (@mack1984demography, @bowers1987precipitation). While it seems that their presence at plots is unlikely to be altered, their abundances were likely underestimated in most years of sampling (cite). The relationships between the proportion of introduced species as a function of all species at a plot, the proportion of invasive species (a subset of introduced species), and the proportion of invasive species cover at a plot were highly correlated, and they were combined into a single metric, 'Invasibility Index' (Figure 2). We suspect that this index is more indicative of the status of a plot in a year with more normal precipitation, as can be seen in Figure 2, the data from the time period generally has a large cluster of invasive cover in the lower left of the plot from (0 - 0.25 on the index axis, beneath the line), which is less representative of the potential for invasive cover to expand rapidly under normal conditions. 
 
 \begin{wrapfigure}{r}{0.4\textwidth}
   \centering
@@ -511,11 +503,11 @@ A handful of the invasive species detected (Whitetops (*Cardaria chalepensis*, *
   \caption{Percent of Each Area meeting Benchmarks}
 \end{wrapfigure}
 
+A handful of the invasive species detected (Whitetops (*Cardaria chalepensis*, *Cardaria draba*, alternatively *Lepidum draba*), Canada thistle (*Cirsium arvense*), field bindweed (*Convolvulus arvensis*),  Timothy (*Phleum pratense*)), especially in the Northern Portion of the field office are generally associated with slightly more mesic conditions than occur at most BLM land, especially adjacent to irrigated pastures. Unless these populations are entrenched near streams, their spread is likely curtailed by the general aridity of BLM land, but their successful extirpation, in the face of continual re-colonization from adjacent pasture lands, or if they have invaded wetlands, is unlikely. Baby's Breath (*Gypsophila elegans*) may have been introduced for roadside plantings, and is worth eradication efforts (@pringle1993fna). Houndstongue *Cynoglossum officinale* is generally limited to higher elevation forested areas, and in the absence of forest fire it's spread may be slow on the portions of BLM land which it inhabits. A couple of these (Prairie Pepperweed (*Lepidium densiflorum*), prostrate knotweed (*Polygonum aviculare*)) are generally associated with heavily compacted soils, and tend to not spread aggressively outside of these areas. 
 
-A wide range of invasive species were present throughout the field office in a variety of habitats, and at varying abundances (Figure XX). All four areas of analysis within the field office, the ACEC's - WSA's, and the Dominguez-Escalente and Gunnison Gorge National Monuments failed to meet management objectives for being in reference condition (80% of the first three, and 70% of the remaining land) (Figure XX, panel 1). In fact none of the confidence intervals even approached the estimates required to be considered successful, the closest upper bound of a confidence interval was `r round(max(nox_Pres$Category == T), 2)`% associated with an estimate of `r round(nox_Pres[which.max(nox_Pres$UCB80Pct.P),'Estimate.P'], 0)`% and it's variability largely attributable to a small sample size of ...
+A wide range of invasive species were present throughout the field office in a variety of habitats, and at varying abundances (Figure 2). All four areas of analysis within the field office, the ACEC's - WSA's, and the Dominguez-Escalente and Gunnison Gorge National Monuments failed to meet management objectives for being in reference condition (80% of the first three, and 70% of the remaining land) (Figure 4, panel 1). In fact none of the confidence intervals even approached the estimates required to be considered successful, the closest upper bound of a confidence interval was `r round(max(nox_Pres$Category == T), 2)`% associated with an estimate of `r round(nox_Pres[which.max(nox_Pres$UCB80Pct.P),'Estimate.P'], 0)`% and it's variability largely attributable to a small sample size of ...
 
-
-They further all failed objectives if invasive species presences were reduced to only occurrences on LPI positions (Figure XX, panel 2). 
+They further all failed objectives if invasive species presences were reduced to only occurrences on LPI positions (Figure 4, panel 2). 
 
 ```{r}
 rm(most_common_inv, inv_r_t, inv_richness, lpi_sum, invasive_sum)
@@ -527,7 +519,7 @@ rm(most_common_inv, inv_r_t, inv_richness, lpi_sum, invasive_sum)
 inv_plots %>% 
   st_drop_geometry() %>% 
   mutate(CATEGORY = NA) %>% 
-  select(PLOTID, AoInference, Meeting, CATEGORY, ECO.SITE) %>% 
+  dplyr::select(PLOTID, AoInference, Meeting, CATEGORY, ECO.SITE) %>% 
   mutate(INDICATOR = 'INVASIVE SPECIES', .before = CATEGORY) %>% 
   rename_with(toupper) %>% 
   mutate(across(.cols = everything(), toupper)) %>% 
