@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2023.2.26)  13 MAR 2023 15:19
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2023.2.26)  14 MAR 2023 10:52
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -444,70 +444,79 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) [1
 
 {/home/sagesteppe/.TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-<../results/figures/invasive_index.png, id=72, 357.0138pt x 252.945pt>
+<../results/figures/invasive_index.png, id=72, 341.3553pt x 241.1409pt>
 File: ../results/figures/invasive_index.png Graphic file (type png)
 <use ../results/figures/invasive_index.png>
-Package pdftex.def Info: ../results/figures/invasive_index.png  used on input line 215.
-(pdftex.def)             Requested size: 234.8835pt x 166.41544pt.
-LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 219.
+Package pdftex.def Info: ../results/figures/invasive_index.png  used on input line 210.
+(pdftex.def)             Requested size: 234.88431pt x 165.92746pt.
+LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 214.
 (/home/sagesteppe/.TinyTeX/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 
-Package wrapfig Warning: Stationary wrapfigure forced to float on input line 223.
+Package wrapfig Warning: Stationary wrapfigure forced to float on input line 218.
 
 
-Package wrapfig Warning: Stationary wrapfigure forced to float on input line 223.
+Package wrapfig Warning: Stationary wrapfigure forced to float on input line 218.
 
 
-Package wrapfig Warning: Stationary wrapfigure forced to float on input line 223.
+Package wrapfig Warning: Stationary wrapfigure forced to float on input line 218.
+
+
+Package wrapfig Warning: Stationary wrapfigure forced to float on input line 224.
+
+
+Package wrapfig Warning: Stationary wrapfigure forced to float on input line 224.
+
+
+Package wrapfig Warning: Stationary wrapfigure forced to float on input line 224.
 
 [2 <../results/figures/invasive_index.png>]
 <../results/maps/invasive_index.png, id=96, 357.9774pt x 263.3037pt>
 File: ../results/maps/invasive_index.png Graphic file (type png)
 <use ../results/maps/invasive_index.png>
-Package pdftex.def Info: ../results/maps/invasive_index.png  used on input line 251.
+Package pdftex.def Info: ../results/maps/invasive_index.png  used on input line 252.
 (pdftex.def)             Requested size: 281.85953pt x 207.31659pt.
-<../results/maps/NothernFO_weeds.png, id=97, 419.6478pt x 193.6836pt>
+<../results/maps/NothernFO_weeds.png, id=98, 419.6478pt x 193.6836pt>
 File: ../results/maps/NothernFO_weeds.png Graphic file (type png)
 <use ../results/maps/NothernFO_weeds.png>
-Package pdftex.def Info: ../results/maps/NothernFO_weeds.png  used on input line 291.
+Package pdftex.def Info: ../results/maps/NothernFO_weeds.png  used on input line 295.
 (pdftex.def)             Requested size: 234.8795pt x 108.4059pt.
 [3 <../results/maps/invasive_index.png> <../results/maps/NothernFO_weeds.png>]
-<../results/figures/waffles.png, id=112, 156.1032pt x 289.08pt>
+<../results/figures/waffles.png, id=111, 201.8742pt x 289.08pt>
 File: ../results/figures/waffles.png Graphic file (type png)
 <use ../results/figures/waffles.png>
-Package pdftex.def Info: ../results/figures/waffles.png  used on input line 318.
-(pdftex.def)             Requested size: 156.10994pt x 289.09251pt.
+Package pdftex.def Info: ../results/figures/waffles.png  used on input line 341.
+(pdftex.def)             Requested size: 201.88293pt x 289.09251pt.
 
-Underfull \hbox (badness 2165) in paragraph at lines 322--343
-\T1/lmr/m/it/10 daria chalepen-sis\T1/lmr/m/n/10 , \T1/lmr/m/it/10 Car-daria draba\T1/lmr/m/n/10 , al-ter-na-tively \T1/lmr/m/it/10 Lep-idum
+Underfull \hbox (badness 1248) in paragraph at lines 345--367
+[][]\T1/lmr/m/n/10 A wide range of in-va-sive species were present
  []
 
 [4 <../results/figures/waffles.png>]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 400.
+(Font)              <10> on input line 410.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 400.
+(Font)              <7> on input line 410.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 400.
+(Font)              <5> on input line 410.
 [5] [6] (./analysis.aux)
 Package rerunfilecheck Info: File `analysis.out' has not changed.
 (rerunfilecheck)             Checksum: 3F10E025E4FDBB82B0FD113EFDEC4828;252.
  ) 
 Here is how much of TeX's memory you used:
- 12028 strings out of 477984
- 192887 string characters out of 5838807
+ 12025 strings out of 477984
+ 192849 string characters out of 5838807
  1866388 words of memory out of 5000000
- 31989 multiletter control sequences out of 15000+600000
- 565149 words of font info for 73 fonts, out of 8000000 for 9000
+ 31987 multiletter control sequences out of 15000+600000
+ 562154 words of font info for 72 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  75i,6n,76p,313b,462s stack positions out of 10000i,1000n,20000p,200000b,200000s
-{/home/sagesteppe/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}</home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx9.pfb></home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr17.pfb></home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr9.pfb></home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmri10.pfb></home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
-Output written on analysis.pdf (6 pages, 2045680 bytes).
+{/home/sagesteppe/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}</home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx9.pfb></home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr17.pfb></home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr9.pfb></home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmri10.pfb></home/sagesteppe/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
+Output written on analysis.pdf (6 pages, 2029095 bytes).
 PDF statistics:
- 189 PDF objects out of 1000 (max. 8388607)
- 155 compressed objects within 2 object streams
+ 184 PDF objects out of 1000 (max. 8388607)
+ 152 compressed objects within 2 object streams
  47 named destinations out of 1000 (max. 500000)
  45 words of extra memory for PDF output out of 10000 (max. 10000000)
 
