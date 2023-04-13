@@ -143,7 +143,7 @@ spp_alpha <- st_intersection(pts, spp_alpha) %>%
   mutate(ECO.SITE = if_else(PLOTID == 'GR-035', 'R036XY114CO', ECO.SITE),
          PLOTID = if_else(PLOTID == 'GR-035', 'GR-025', PLOTID)) 
 
-rm(plot_char, pts, esd_class)
+rm(plot_char, esd_class)
 ```
 
 ```{r import LPI data and tie to plots}
@@ -281,6 +281,48 @@ st_write(inv_carto,  file.path(carto_path, 'noxious', 'noxious_index.shp'),
          append = F)
 ```
 
+
+```{r, eval = F}
+library(terra)
+
+veg <- rast('../../plot_post_stratification/data/processed/PredictedVegClass.tif')
+lkp <- read.csv('../../plot_post_stratification/data/processed/landcover_lkp_table.csv') %>% 
+  mutate(stratum = str_trim(stratum))
+denca <- st_read('../../UFO_cartography/BLM_CO_NM_NCA/nlcs_nm_nca_poly.shp', quiet = T) %>% 
+  filter(str_detect(NLCS_NAME, 'Dominguez')) %>% 
+  vect() %>% 
+  project(., crs(veg))
+
+veg <- crop(veg, denca, mask = T)
+v <- expanse(veg, byValue = T, unit = "m")
+v1 <- data.frame(v) %>% 
+  mutate(area = area * 0.000247105) %>% 
+  left_join(., lkp, by = c('value' = 'layer')) %>% 
+  filter(stratum != 'Mixed_Conifer') %>%  # portions of an acre...
+  select(stratum, area) 
+
+u <- vect(pts) %>% 
+  project(., crs(denca)) %>% 
+  extract(veg, ., method = 'simple', fun = 'median') %>% 
+  drop_na(lyr1) %>% 
+  left_join(., lkp, by = c('lyr1' = 'layer'))  %>% 
+  select(-lyr1)
+
+denca_pts <- pts[u$ID,] %>% 
+  st_drop_geometry() %>% 
+  bind_cols(., u)
+
+write.csv(denca_pts, '../data/processed/denca_pts.csv', row.names = F)
+
+rm(lkp, denca, v, v1, veg, u)
+```
+
+```{r}
+denca_pts <- read.csv('../data/processed/denca_pts.csv')
+```
+
+
+
 ```{r Perform Weighted Analysis of Noxious Plants, warning = F}
 
 defaultW <- getOption("warn")
@@ -348,9 +390,22 @@ noxious_cover_5_analysis <- cat_analysis(
   dframe = meeting, siteID = 'PLOTID', vars = 'Meeting',
   subpops = 'AoInference',  weight = 'WghtPerPlot', vartype = 'Local', conf = 80)
 
+# For Dominguez-Escalente perform with various thresholds
+
+meetingDE <- filter(meeting, AoInference == 'DE-NM')  %>% 
+  mutate(Meeting = if_else(Proportion_Invasive <= 0.05, T, F)) %>% 
+  select(-AoInference, -STRATUM, -WghtPerPlot, -ECO.SITE) %>% 
+  left_join(., denca_pts, by = 'PLOTID') %>% 
+  group_by(real_STRATUM) %>% 
+  mutate(WghtPerPlot = 1/n())
+
+noxious_cover_10_analysis <- cat_analysis(
+  dframe = meetingDE, siteID = 'PLOTID', vars = 'Meeting',
+  subpops = 'real_STRATUM',  weight = 'WghtPerPlot', vartype = 'Local', conf = 80)
+
 options(warn = defaultW)
     
-rm(wghts, esd_class, warn_df, inv_carto, f, p, defaultW)
+rm(wghts, esd_class, warn_df, inv_carto, f, p, defaultW, denca_pts, meetingDE)
 ```
 
 ```{r Do Certain Ecosites appear less resistant to invasion}
@@ -482,6 +537,8 @@ ggsave(w, path = '../results/figures', device = 'png', bg = 'transparent',
 rm(w, waff_dat, method_labs, waf_values)
 ```
 
+To produce the estimates of the amount of land in each stratum in the Dominguez-Escalente NCA which was meeting objectives, each point was extracted to the derived vegetation cover product. The weight of each point was proportional to 'one' divided by the total number of points. This was to allow for a simplified format for weighing these plots. 
+
 \newpage 
 
 ## Results & Discussion
@@ -545,6 +602,14 @@ nc5 <- noxious_cover_5_analysis %>%
 ```
 
 A wide range of invasive species were present throughout the field office in a variety of habitats, and at varying abundances (Figure 2). When either the presence of an invasive species on plot (Species Richness data; Figure 4 Panel 1), or the presence of an invasive species on 'line' (Line-Point Intercept; Figure 4 Panel 2), were used as a benchmarks all four areas of analysis within the field office failed to have adequate areas meeting benchmarks. These results were not unexpected, and the more modest benchmark of plots where invasive species compose less than 5% of the cover of all vascular plant cover (Figure 4 Panel 3), had one area - the Dominguez-Escalente National Conservation Area, which was meeting benchmarks (Estimate = `r  paste0(round(nc5[nc5$Subpopulation == 'DE-NM', 'Estimate.P'], 1), '%')`, LCB `r  paste0(round(nc5[nc5$Subpopulation == 'DE-NM', 'LCB80Pct.P'], 1), '%')`, UCB `r  paste0(round(nc5[nc5$Subpopulation == 'DE-NM', 'UCB80Pct.P'], 1), '%')`). The Area's of Critical Environmental Concern (ACEC's) - Wilderness Study Area's (WSA) (estimate = `r  paste0(round(nc5[nc5$Subpopulation == 'ACEC-WSA', 'Estimate.P'], 1), '%')`, LCB `r  paste0(round(nc5[nc5$Subpopulation == 'ACEC-WSA', 'LCB80Pct.P'], 1), '%')`, UCB `r  paste0(round(nc5[nc5$Subpopulation == 'ACEC-WSA', 'UCB80Pct.P'], 1), '%')`), and the Gunnison Gorge National Conservation Area (estimate = `r  paste0(round(nc5[nc5$Subpopulation == 'GG-NM', 'Estimate.P'], 1), '%')`, LCB `r  paste0(round(nc5[nc5$Subpopulation == 'GG-NM', 'LCB80Pct.P'], 1), '%')`, UCB `r  paste0(round(nc5[nc5$Subpopulation == 'GG-NM', 'UCB80Pct.P'], 1), '%')`) failed to meet management objectives for being in reference condition, and despite relatively small sample sizes had estimates of areas meeting objectives lower than the remaining BLM Lands (estimate = `r  paste0(round(nc5[nc5$Subpopulation == 'SampleFrame', 'Estimate.P'], 1), '%')`, LCB `r  paste0(round(nc5[nc5$Subpopulation == 'SampleFrame', 'LCB80Pct.P'], 1), '%')`, UCB `r  paste0(round(nc5[nc5$Subpopulation == 'SampleFrame', 'UCB80Pct.P'], 1), '%')`) with minimal amounts of overlap between their confidence intervals. This indicates that these two management areas may be worth focusing resources on invasive species treatments, and that Dominguez-Escalente warrants attention before the cover of invasive species, already present throughout the area (Figure 4 Panel 1) increase. 
+
+
+```{r}
+nc10 <- noxious_cover_10_analysis %>% 
+  filter(Category == T)
+```
+
+Of the special management goals per stratum at the Dominguez Escalente National Conservation Area most objectives are being meet. Salt desert is meeting the estimate of 80% of land having less than 10% relative cover of invasives (Estimate = `r  paste0(round(nc10[nc10$Subpopulation == 'Salt_Desert', 'Estimate.P'], 1), '%')`, LCB `r  paste0(round(nc10[nc10$Subpopulation == 'Salt_Desert', 'LCB80Pct.P'], 1), '%')`, UCB `r  paste0(round(nc10[nc10$Subpopulation == 'Salt_Desert', 'UCB80Pct.P'], 1), '%')`).  Sagebrush while including the confidence intervals had a very small sample size and was not estimated to be meeting it's goals (Estimate = `r  paste0(round(nc10[nc10$Subpopulation == 'Sage_Brush', 'Estimate.P'], 1), '%')`, LCB `r  paste0(round(nc10[nc10$Subpopulation == 'Sage_Brush', 'LCB80Pct.P'], 1), '%')`, UCB `r  paste0(round(nc10[nc10$Subpopulation == 'Sage_Brush', 'UCB80Pct.P'], 1), '%')`). If we assume that a goal for Pinon-Juniper is less than 80% of land having relative cover of invasive species below 10% than it is meeting objectives (Estimate = `r  paste0(round(nc10[nc10$Subpopulation == 'Pinon_Juniper', 'Estimate.P'], 1), '%')`, LCB `r  paste0(round(nc10[nc10$Subpopulation == 'Pinon_Juniper', 'LCB80Pct.P'], 1), '%')`, UCB `r  paste0(round(nc10[nc10$Subpopulation == 'Pinon_Juniper', 'UCB80Pct.P'], 1), '%')`).
 
 ```{r}
 rm(most_common_inv, inv_r_t, inv_richness, lpi_sum, invasive_sum, nc5, noxious_cover_5_analysis)
